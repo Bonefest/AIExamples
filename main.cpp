@@ -7,6 +7,7 @@
 int main() {
     GameManager manager;
     if(manager.init()) {
+
         manager.run();
     }
     return 0;

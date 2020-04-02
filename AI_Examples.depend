@@ -1,10 +1,9 @@
 # depslib dependency file v1.0
-1585834752 source:/home/miofix/Programming/GameDevelopment/SDL/AI_Examples/main.cpp
+1585849303 source:/home/miofix/Programming/GameDevelopment/SDL/AI_Examples/main.cpp
 	<iostream>
 	"SDL2/SDL.h"
 	"glm/glm.hpp"
-	"SystemsManager.h"
-	"Systems/System.h"
+	"GameManager.h"
 
 1578255577 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Dependencies/glm/glm.hpp
 	"detail/_fixes.hpp"
@@ -649,14 +648,16 @@
 
 1578255577 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Dependencies/glm/simd/integer.h
 
-1585834721 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/SystemsManager.h
+1585859494 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/SystemsManager.h
 	<memory>
 	<vector>
 	"Systems/System.h"
 
-1585834693 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Systems/System.h
+1585859471 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Systems/System.h
 	"entt.hpp"
 	"../Components/Components.h"
+	"../Events/Events.h"
+	"../GameData.h"
 
 1585170298 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Dependencies/entt.hpp
 	<vector>
@@ -868,6 +869,25 @@
 	<list>
 	<iterator>
 
-1585833213 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Components/Components.h
+1585856956 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Components/Components.h
+	<memory>
 	"glm/glm.hpp"
+	"../BehaviourManager.h"
+
+1585859572 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/GameManager.h
+	<iostream>
+	<chrono>
+	"SystemsManager.h"
+	"Systems/System.h"
+	"Events/Events.h"
+	"GameData.h"
+
+1585852784 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/GameData.h
+	"glm/glm.hpp"
+
+1585858056 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/BehaviourManager.h
+	"glm/glm.hpp"
+	"Components/Components.h"
+
+1585859366 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Events/Events.h
 

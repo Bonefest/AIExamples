@@ -43,7 +43,9 @@ public:
             transform.position = wrapAround(transform.position + kinematic.velocity * delta,
                                             gameData.screenSize);
 
-            transform.angle = glm::degrees(std::atan2(kinematic.velocity.y, kinematic.velocity.x));
+            //For orientation saving in case of rapid zero velocity changing
+            if(glm::length(kinematic.velocity) > 0.001f)
+                transform.angle = glm::degrees(std::atan2(kinematic.velocity.y, kinematic.velocity.x));
         });
     }
 
@@ -51,7 +53,7 @@ private:
     glm::vec2 wrapAround(glm::vec2 position, glm::vec2 size) {
         glm::vec2 result(position);
         if(position.x > size.x + 64) result.x = -64;
-        else if(position.x < -65) result.x = position.x + 63;
+        else if(position.x < -65) result.x = size.x + 63;
 
         if(position.y > size.y + 64) result.y = -64;
         else if(position.y < -65) result.y = size.y + 63;
@@ -71,8 +73,9 @@ public:
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
         auto aiobjects = registry.view<Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Kinematic& kinematic, AI& ai) {
-            glm::vec2 acceleration = ai.manager->seek(m_target);
-            kinematic.velocity += acceleration * delta;
+//            glm::vec2 acceleration = ai.manager->flee(m_target, 100.0f);
+//            kinematic.velocity += acceleration * delta;
+              kinematic.velocity = ai.manager->simplifiedArrive(m_target, 10.0f);
         });
     }
 

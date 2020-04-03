@@ -24,7 +24,7 @@ struct Renderable {
 };
 
 struct Kinematic {
-    Kinematic(float objMaxSpeed): maxSpeed(objMaxSpeed) { }
+    Kinematic(float objMaxSpeed): velocity(0.0f, 0.0f), maxSpeed(objMaxSpeed) { }
     glm::vec2 velocity;
     float maxSpeed;
 

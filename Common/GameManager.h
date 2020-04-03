@@ -11,6 +11,8 @@
 
 #include "GameData.h"
 
+#include "SDL2/SDL_image.h"
+
 using namespace std;
 
 const int SCREEN_WIDTH = 640;
@@ -118,6 +120,11 @@ private:
 
             m_prenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
             if(m_prenderer == NULL) return false;
+
+            if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+                printf("Unable to init SDL_Image!");
+                return false;
+            }
 
             return true;
 

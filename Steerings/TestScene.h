@@ -9,6 +9,8 @@ public:
     virtual bool init(const string& programName, int width, int height) {
         if(!GameManager::init(programName, width, height)) return false;
 
+        TextureManager::getInstance().setRenderer(m_prenderer);
+
         initContext();
         initSystems();
         initEntities();
@@ -34,15 +36,19 @@ public:
     }
 
     void initEntities() {
-        SDL_Texture* texture = TextureManager::getInstance().loadTexture("Resources/Player.png");
+
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+        SDL_Texture* texture = TextureManager::getInstance().loadTexture("Resources/Pointer.png");
+        int textureWidth = 0, textureHeight = 0;
+        SDL_QueryTexture(texture, NULL, NULL, &textureWidth, &textureHeight);
 
         entt::registry& registry = m_systemsManager.getRegistry();
         entt::entity shipEntity = registry.create();
 
         registry.assign<Renderable>(shipEntity, texture);
         registry.assign<Transform>(shipEntity,
-                                   glm::vec2(0.0f, 0.0f),
-                                   glm::vec2(32.0f, 32.0f),
+                                   glm::vec2(320.0f, 240.0f),
+                                   glm::vec2(textureWidth, textureHeight),
                                    1.0f,
                                    0.0f);
         registry.assign<Kinematic>(shipEntity, 400.0f);

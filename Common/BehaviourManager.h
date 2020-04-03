@@ -10,10 +10,10 @@ public:
                                                                     m_owner(owner) { }
     glm::vec2 seek(glm::vec2 target) {
         Transform& ownerTransform = m_rregistry.get<Transform>(m_owner);
-        Physics& ownerPhysics = m_rregistry.get<Physics>(m_owner);
+        Kinematic& ownerKinematic = m_rregistry.get<Kinematic>(m_owner);
 
-        glm::vec2 desiredVelocity = glm::normalize(target - ownerTransform.position) * ownerPhysics.maxSpeed;
-        return (desiredVelocity - ownerPhysics.velocity);
+        glm::vec2 desiredVelocity = glm::normalize(target - ownerTransform.position) * ownerKinematic.maxSpeed;
+        return (desiredVelocity - ownerKinematic.velocity);
     }
 
 private:

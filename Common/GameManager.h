@@ -31,51 +31,12 @@ public:
         SDL_Quit();
     }
 
-    bool init() {
-        if(!initSDL(m_pwindow, "Examples", SCREEN_WIDTH, SCREEN_HEIGHT)) return false;
-
-        initContext();
-        initSystems();
-        initEntities();
+    virtual bool init(const string& programName, int width, int height) {
+        if(!initSDL(m_pwindow, programName.c_str(), width, height)) return false;
 
         return true;
     }
 
-    void initContext() {
-        auto& registry = m_systemsManager.getRegistry();
-
-        registry.set<GameData>();
-        GameData& gameData = registry.ctx<GameData>();
-
-        gameData.screenSize = glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    }
-
-    void initSystems() {
-        m_systemsManager.addSystem(make_shared<RenderingSystem>(m_prenderer));
-        m_systemsManager.addSystem(make_shared<PhysicsSystem>());
-        m_systemsManager.addSystem(make_shared<AISteeringSystem>());
-    }
-
-    void initEntities() {
-        SDL_Surface* triangleSurface = SDL_LoadBMP("Resources/Triangle.bmp");
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(m_prenderer, triangleSurface);
-        SDL_FreeSurface(triangleSurface);
-        m_vtextures.push_back(texture);
-
-        entt::registry& registry = m_systemsManager.getRegistry();
-        entt::entity shipEntity = registry.create();
-
-        registry.assign<Renderable>(shipEntity, texture);
-        registry.assign<Transform>(shipEntity,
-                                   glm::vec2(0.0f, 0.0f),
-                                   glm::vec2(32.0f, 32.0f),
-                                   1.0f,
-                                   0.0f);
-        registry.assign<Physics>(shipEntity, 400.0f, 1.0f);
-        auto bmanager = make_shared<BehaviourManager>(m_systemsManager.getRegistry(), shipEntity);
-        registry.assign<AI>(shipEntity, bmanager);
-    }
 
     void run() {
         std::chrono::time_point<std::chrono::system_clock> lastTime, currentTime;
@@ -111,16 +72,9 @@ public:
         }
     }
 
-    void update(float delta) {
-        SDL_SetRenderDrawColor(m_prenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(m_prenderer);
+    virtual void update(float delta) { }
 
-        m_systemsManager.update(delta);
-
-        SDL_RenderPresent(m_prenderer);
-    }
-
-    void pollEvents() {
+    virtual void pollEvents() {
         SDL_Event event;
         while(SDL_PollEvent(&event) != 0) {
             if(event.type == SDL_QUIT) {
@@ -133,6 +87,14 @@ public:
     }
 
     uint32_t getFPS() const { return m_fps; }
+
+protected:
+    SystemsManager m_systemsManager;
+    SDL_Window* m_pwindow;
+    SDL_Renderer* m_prenderer;
+
+    int m_screenWidth;
+    int m_screenHeight;
 private:
     bool initSDL(SDL_Window* window,
                  const char* title,
@@ -145,6 +107,9 @@ private:
             showLastError("Unable to init SDL");
             return false;
         } else {
+            m_screenWidth = screenWidth;
+            m_screenHeight = screenHeight;
+
             window = SDL_CreateWindow(title, screenPosX, screenPosY, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
             if(window == NULL) {
                 showLastError("Unable to create window");
@@ -164,12 +129,6 @@ private:
         printf("%s: %s\n", message, SDL_GetError());
     }
 
-
-
-
-    SystemsManager m_systemsManager;
-    SDL_Window* m_pwindow;
-    SDL_Renderer* m_prenderer;
 
     bool m_gameFinished;
 

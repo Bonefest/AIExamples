@@ -38,12 +38,12 @@ public:
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
         GameData& gameData = registry.ctx<GameData>();
 
-        auto physicsObjects = registry.view<Transform, Physics>();
-        physicsObjects.each([&](entt::entity object, Transform& transform, Physics& physics) {
-            transform.position = wrapAround(transform.position + physics.velocity * delta,
+        auto physicsObjects = registry.view<Transform, Kinematic>();
+        physicsObjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic) {
+            transform.position = wrapAround(transform.position + kinematic.velocity * delta,
                                             gameData.screenSize);
 
-            transform.angle = glm::degrees(std::atan2(physics.velocity.y, physics.velocity.x));
+            transform.angle = glm::degrees(std::atan2(kinematic.velocity.y, kinematic.velocity.x));
         });
     }
 
@@ -69,10 +69,10 @@ public:
     }
 
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
-        auto aiobjects = registry.view<Physics, AI>();
-        aiobjects.each([&](entt::entity object, Physics& physics, AI& ai) {
-            glm::vec2 acceleration = ai.manager->seek(m_target) / physics.mass;
-            physics.velocity += acceleration * delta;
+        auto aiobjects = registry.view<Kinematic, AI>();
+        aiobjects.each([&](entt::entity object, Kinematic& kinematic, AI& ai) {
+            glm::vec2 acceleration = ai.manager->seek(m_target);
+            kinematic.velocity += acceleration * delta;
         });
     }
 

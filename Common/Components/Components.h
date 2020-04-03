@@ -23,16 +23,12 @@ struct Renderable {
     SDL_Texture* texture;
 };
 
-struct Physics {
-
-    explicit Physics(float objMaxSpeed, float objMass): velocity(0.0f, 0.0f),
-                                                        maxSpeed(objMaxSpeed),
-                                                        mass(objMass) { }
-
+struct Kinematic {
+    Kinematic(float objMaxSpeed): maxSpeed(objMaxSpeed) { }
     glm::vec2 velocity;
-
     float maxSpeed;
-    float mass;
+
+    float angularSpeed;
 };
 
 #include "../BehaviourManager.h"

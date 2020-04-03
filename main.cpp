@@ -1,14 +1,13 @@
 #include <iostream>
 #include "SDL2/SDL.h"
 
-#include "glm/glm.hpp"
-#include "GameManager.h"
+#include "Steerings/TestScene.h"
 
 int main() {
-    GameManager manager;
-    if(manager.init()) {
+    TestScene scene;
+    if(scene.init("TestScene", 640, 480)) {
 
-        manager.run();
+        scene.run();
     }
     return 0;
 }

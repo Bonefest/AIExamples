@@ -71,14 +71,7 @@ public:
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
         auto aiobjects = registry.view<Transform, Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
-            auto output = sb::arrive(registry, object, m_target, 1.0f, 300.0f);
-            printf("%f %f\n", output.acceleration.x, output.acceleration.y);
-            kinematic.velocity += output.acceleration * delta;
-            if(glm::length(kinematic.velocity) > kinematic.maxSpeed) {
-                kinematic.velocity = glm::normalize(kinematic.velocity) * kinematic.maxSpeed;
-            } else if(glm::length(kinematic.velocity) > 0.1f) {
-                transform.angle = vecToOrientation(kinematic.velocity);
-            } else kinematic.velocity = glm::vec2(0.0f, 0.0f);
+            auto output = sb::align(registry, object, vecToOrientation(glm::normalize(m_target - transform.position)), 0.1f, 10.0f);
             kinematic.angularSpeed += output.angular * delta;
         });
     }

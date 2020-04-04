@@ -115,6 +115,7 @@ namespace SteeringBehaviours {
         return output;
     }
 
+    //OK parameters are: 1.0f, 300.0f
     Output arrive(entt::registry& registry, entt::entity owner, glm::vec2 target, float stopRadius, float velocityRadius) {
         Transform& transform = registry.get<Transform>(owner);
         Kinematic& kinematic = registry.get<Kinematic>(owner);
@@ -135,6 +136,35 @@ namespace SteeringBehaviours {
 
         if(glm::length(output.acceleration) > kinematic.maxAcceleration)
             output.acceleration = glm::normalize(output.acceleration) * kinematic.maxAcceleration;
+
+        return output;
+    }
+
+    //It's better to imagine distance between angles like a line not a circular path - then it's much easier to apply arrive method
+    Output align(entt::registry& registry, entt::entity owner, float target, float stopRadius, float angleRadius) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output{glm::vec2(0.0f), 0.0f};
+
+        float angleDistance = abs(std::fmod(target - transform.angle, 360.0f));
+        printf("%f %f\n", target, angleDistance);
+
+        if(angleDistance < stopRadius)
+            return output;
+
+        float speed = kinematic.maxAngularSpeed;
+        if(angleDistance < angleRadius)
+            speed = angleDistance / angleRadius;
+
+        float direction = (target - transform.angle) / abs(target - transform.angle);
+
+        output.angular = speed * direction - kinematic.angularSpeed;
+        output.angular /= 0.01f;
+
+        if(abs(output.angular) > kinematic.maxAngularSpeed) {
+            output.angular = output.angular / abs(output.angular) * kinematic.maxAngularSpeed;
+        }
 
         return output;
     }

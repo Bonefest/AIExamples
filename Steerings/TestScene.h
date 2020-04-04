@@ -4,6 +4,19 @@
 #include "GameManager.h"
 #include "TextureManager.h"
 
+entt::entity createDrawableEntity(entt::registry& registry, const string& textureName, glm::vec2 position) {
+    SDL_Texture* texture = TextureManager::getInstance().loadTexture(textureName);
+    int tw, th;
+    SDL_QueryTexture(texture, NULL, NULL, &tw, &th);
+
+    entt::entity entity = registry.create();
+
+    registry.assign<Renderable>(entity, texture);
+    registry.assign<Transform>(entity, position,  glm::vec2(tw, th), 1.0f, 0.0f);
+
+    return entity;
+}
+
 class TestScene: public GameManager {
 public:
     virtual bool init(const string& programName, int width, int height) {
@@ -14,6 +27,8 @@ public:
         initContext();
         initSystems();
         initEntities();
+
+        m_systemsManager.getDispatcher().sink<MouseEvent>().connect<&TestScene::onMouseEvent>(*this);
 
         return true;
     }
@@ -36,24 +51,15 @@ public:
     }
 
     void initEntities() {
-
-        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-        SDL_Texture* texture = TextureManager::getInstance().loadTexture("Resources/Pointer.png");
-        int textureWidth = 0, textureHeight = 0;
-        SDL_QueryTexture(texture, NULL, NULL, &textureWidth, &textureHeight);
-
         entt::registry& registry = m_systemsManager.getRegistry();
-        entt::entity shipEntity = registry.create();
 
-        registry.assign<Renderable>(shipEntity, texture);
-        registry.assign<Transform>(shipEntity,
-                                   glm::vec2(320.0f, 240.0f),
-                                   glm::vec2(textureWidth, textureHeight),
-                                   1.0f,
-                                   0.0f);
-        registry.assign<Kinematic>(shipEntity, 400.0f);
+        entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(320, 240));
+        registry.assign<Kinematic>(shipEntity, 500.0f, 500.0f, 10.0f);
         auto bmanager = make_shared<BehaviourManager>(m_systemsManager.getRegistry(), shipEntity);
         registry.assign<AI>(shipEntity, bmanager);
+
+
+        m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));
     }
 
     virtual void update(float delta) {
@@ -64,6 +70,14 @@ public:
 
         SDL_RenderPresent(m_prenderer);
     }
+
+    void onMouseEvent(const MouseEvent& event) {
+        Transform& transform = m_systemsManager.getRegistry().get<Transform>(m_markEntity);
+        transform.position = glm::vec2(event.event.x, event.event.y);
+    }
+
+private:
+    entt::entity m_markEntity;
 };
 
 

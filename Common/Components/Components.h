@@ -24,11 +24,17 @@ struct Renderable {
 };
 
 struct Kinematic {
-    Kinematic(float objMaxSpeed): velocity(0.0f, 0.0f), maxSpeed(objMaxSpeed) { }
+    Kinematic(float objMaxSpeed, float objMaxAcceleration, float objMaxAngularSpeed): velocity(0.0f, 0.0f),
+                                                                                      maxSpeed(objMaxSpeed),
+                                                                                      maxAcceleration(objMaxAcceleration),
+                                                                                      angularSpeed(0.0f),
+                                                                                      maxAngularSpeed(objMaxAngularSpeed) { }
     glm::vec2 velocity;
     float maxSpeed;
+    float maxAcceleration;
 
     float angularSpeed;
+    float maxAngularSpeed;
 };
 
 #include "../BehaviourManager.h"

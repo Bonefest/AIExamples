@@ -4,68 +4,154 @@
 #include "glm/glm.hpp"
 #include "Components/Components.h"
 
+
+struct SteeringOutput {
+    glm::vec2 linear;
+    float angular;
+};
+
+ float vecToOrientation(glm::vec2 vector) {
+    return glm::degrees(std::atan2(vector.y, vector.x));
+}
+
+glm::vec2 orientationToVec(float angle) {
+    return glm::vec2(std::cos(angle), std::sin(angle));
+}
+
+namespace KinematicSteeringBehaviours {
+    struct Output {
+        glm::vec2 velocity;
+        float orientation;
+    };
+
+    Output seek(entt::registry& registry, entt::entity owner, glm::vec2 target) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output;
+        output.velocity = glm::normalize(target - transform.position) * kinematic.maxSpeed;
+        output.orientation = vecToOrientation(output.velocity);
+
+        return output;
+    }
+
+    Output flee(entt::registry& registry, entt::entity owner, glm::vec2 target, float maxDistance) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        float distance = glm::length(target - transform.position);
+
+        Output output{glm::vec2(0.0f, 0.0f), transform.angle};
+        if(distance < maxDistance) {
+            output.velocity = glm::normalize(transform.position - target) * kinematic.maxSpeed;
+            output.orientation = vecToOrientation(output.velocity);
+        }
+
+        return output;
+    }
+
+    Output arrive(entt::registry& registry, entt::entity owner, glm::vec2 target, float maxRadius) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output{glm::vec2(0.0f, 0.0f), transform.angle};
+
+        float distance = glm::length(target - transform.position);
+        if(distance > maxRadius) {
+            float speed = std::min(distance / 0.25f, kinematic.maxSpeed);
+
+            glm::vec2 desiredVelocity = glm::normalize(target - transform.position) * speed;
+            output.velocity = desiredVelocity;
+            output.orientation = vecToOrientation(desiredVelocity);
+        }
+
+        return output;
+    }
+
+    Output wandering(entt::registry& registry, entt::entity owner, float maxOrientation) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output;
+        output.velocity = orientationToVec(glm::radians(transform.angle)) * kinematic.maxSpeed;
+        output.orientation = (drand48() - drand48()) * maxOrientation;
+
+        return output;
+    }
+}
+
+namespace ksb = KinematicSteeringBehaviours;
+
+namespace SteeringBehaviours {
+    struct Output {
+        glm::vec2 acceleration;
+        float angular;
+    };
+
+    Output seek(entt::registry& registry, entt::entity owner, glm::vec2 target) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output;
+        output.acceleration = glm::normalize(target - transform.position) * kinematic.maxAcceleration;
+
+        return output;
+    }
+
+    Output flee(entt::registry& registry, entt::entity owner, glm::vec2 target, float maxRadius) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        float distance = glm::length(target - transform.position);
+
+        Output output;
+
+        if(distance < maxRadius) {
+            output.acceleration = glm::normalize(transform.position - target) * kinematic.maxAcceleration;
+        } else {
+            output.acceleration = -glm::normalize(kinematic.velocity) * kinematic.maxAcceleration;
+        }
+
+        return output;
+    }
+
+    Output arrive(entt::registry& registry, entt::entity owner, glm::vec2 target, float stopRadius, float velocityRadius) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output{glm::vec2(0.0f), 0.0f};
+
+        glm::vec2 direction = target - transform.position;
+        float distance = glm::length(direction);
+
+        if(distance < stopRadius) return output;
+
+        float speed = kinematic.maxSpeed;
+        if(distance < velocityRadius)
+            speed *= distance / velocityRadius;
+
+        output.acceleration = glm::normalize(direction) * speed - kinematic.velocity;
+        output.acceleration /= 0.1f;
+
+        if(glm::length(output.acceleration) > kinematic.maxAcceleration)
+            output.acceleration = glm::normalize(output.acceleration) * kinematic.maxAcceleration;
+
+        return output;
+    }
+}
+
+namespace sb = SteeringBehaviours;
+
 class BehaviourManager {
 public:
     BehaviourManager(entt::registry& registry, entt::entity owner): m_rregistry(registry),
                                                                     m_owner(owner) { }
-    glm::vec2 seek(glm::vec2 target) {
-        Transform& ownerTransform = m_rregistry.get<Transform>(m_owner);
-        Kinematic& ownerKinematic = m_rregistry.get<Kinematic>(m_owner);
 
-        glm::vec2 desiredVelocity = glm::normalize(target - ownerTransform.position) * ownerKinematic.maxSpeed;
-        return (desiredVelocity - ownerKinematic.velocity);
-    }
-
-    glm::vec2 flee(glm::vec2 target, float maxDistance) {
-        Transform& ownerTransform = m_rregistry.get<Transform>(m_owner);
-        Kinematic& ownerKinematic = m_rregistry.get<Kinematic>(m_owner);
-
-        float distance = glm::length(ownerTransform.position - target);
-        if(distance < maxDistance) {
-            glm::vec2 desiredVelocity = glm::normalize(target - ownerTransform.position) * ownerKinematic.maxSpeed;
-            return ownerKinematic.velocity - desiredVelocity;
-        }
-
-        return -ownerKinematic.velocity;
-    }
-
-    glm::vec2 simplifiedFlee(glm::vec2 target, float maxDistance) {
-        Transform& ownerTransform = m_rregistry.get<Transform>(m_owner);
-        Kinematic& ownerKinematic = m_rregistry.get<Kinematic>(m_owner);
-
-        float distance = glm::length(ownerTransform.position - target);
-        if(distance < maxDistance) {
-            glm::vec2 desiredVelocity = glm::normalize(target - ownerTransform.position) * ownerKinematic.maxSpeed;
-            return desiredVelocity;
-        }
-
-        return glm::vec2(0.0f, 0.0f);
-    }
-
-    glm::vec2 simplifiedArrive(glm::vec2 target, float radius) {
-        Transform& ownerTransform = m_rregistry.get<Transform>(m_owner);
-        Kinematic& ownerKinematic = m_rregistry.get<Kinematic>(m_owner);
-
-        float distance = glm::length(ownerTransform.position - target);
-
-        if(distance > radius) {
-            float speed = std::min(distance / 0.25f, ownerKinematic.maxSpeed);
-            glm::vec2 desiredVelocity = glm::normalize(target - ownerTransform.position)  * speed;
-            return desiredVelocity;
-        }
-
-        return glm::vec2(0.0f, 0.0f);
-    }
 
 private:
 
     entt::registry& m_rregistry;
     entt::entity m_owner;
-};
-
-struct SteeringOutput {
-    glm::vec2 linear;
-    float angular;
 };
 
 

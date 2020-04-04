@@ -42,10 +42,8 @@ public:
         physicsObjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic) {
             transform.position = wrapAround(transform.position + kinematic.velocity * delta,
                                             gameData.screenSize);
+            transform.angle += kinematic.angularSpeed * delta;
 
-            //For orientation saving in case of rapid zero velocity changing
-            if(glm::length(kinematic.velocity) > 0.001f)
-                transform.angle = glm::degrees(std::atan2(kinematic.velocity.y, kinematic.velocity.x));
         });
     }
 
@@ -71,11 +69,17 @@ public:
     }
 
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
-        auto aiobjects = registry.view<Kinematic, AI>();
-        aiobjects.each([&](entt::entity object, Kinematic& kinematic, AI& ai) {
-//            glm::vec2 acceleration = ai.manager->flee(m_target, 100.0f);
-//            kinematic.velocity += acceleration * delta;
-              kinematic.velocity = ai.manager->simplifiedArrive(m_target, 10.0f);
+        auto aiobjects = registry.view<Transform, Kinematic, AI>();
+        aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
+            auto output = sb::arrive(registry, object, m_target, 1.0f, 300.0f);
+            printf("%f %f\n", output.acceleration.x, output.acceleration.y);
+            kinematic.velocity += output.acceleration * delta;
+            if(glm::length(kinematic.velocity) > kinematic.maxSpeed) {
+                kinematic.velocity = glm::normalize(kinematic.velocity) * kinematic.maxSpeed;
+            } else if(glm::length(kinematic.velocity) > 0.1f) {
+                transform.angle = vecToOrientation(kinematic.velocity);
+            } else kinematic.velocity = glm::vec2(0.0f, 0.0f);
+            kinematic.angularSpeed += output.angular * delta;
         });
     }
 

@@ -32,19 +32,22 @@
 			<Add option="-Wall" />
 			<Add option="-std=c++14" />
 			<Add option="-std=c++1z" />
-			<Add directory="Dependencies" />
+			<Add directory="Common/Dependencies" />
+			<Add directory="Common" />
 		</Compiler>
 		<Linker>
-			<Add option="-lSDL2" />
+			<Add option="-lSDL2 -lSDL2_image" />
 		</Linker>
-		<Unit filename="BehaviourManager.h" />
-		<Unit filename="Components/Components.h" />
-		<Unit filename="Events/Events.h" />
-		<Unit filename="GameData.h" />
-		<Unit filename="GameManager.h" />
-		<Unit filename="GameSettings.h" />
+		<Unit filename="Common/BehaviourManager.h" />
+		<Unit filename="Common/Components/Components.h" />
+		<Unit filename="Common/Events/Events.h" />
+		<Unit filename="Common/GameData.h" />
+		<Unit filename="Common/GameManager.h" />
+		<Unit filename="Common/Systems/System.h" />
+		<Unit filename="Common/SystemsManager.h" />
+		<Unit filename="Common/TextureManager.h" />
+		<Unit filename="Steerings/TestScene.h" />
 		<Unit filename="Systems/System.h" />
-		<Unit filename="SystemsManager.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<envvars />

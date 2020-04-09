@@ -76,7 +76,9 @@ public:
 
     virtual void update(float delta) { }
 
-    virtual void pollEvents() {
+    virtual void input(SDL_Event event) { }
+
+    void pollEvents() {
         SDL_Event event;
         while(SDL_PollEvent(&event) != 0) {
             if(event.type == SDL_QUIT) {
@@ -85,6 +87,8 @@ public:
                       event.type == SDL_MOUSEBUTTONUP) {
                 m_systemsManager.getDispatcher().trigger<MouseEvent>(event.button);
             }
+
+            input(event);
         }
     }
 

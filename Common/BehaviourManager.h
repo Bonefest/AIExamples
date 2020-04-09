@@ -18,6 +18,14 @@ glm::vec2 orientationToVec(float angle) {
     return glm::vec2(std::cos(angle), std::sin(angle));
 }
 
+glm::vec2 wrapVelocity(glm::vec2 velocity, float maxSpeed) {
+    if(glm::length(velocity) > maxSpeed) {
+        velocity = glm::normalize(velocity) * maxSpeed;
+    }
+
+    return velocity;
+}
+
 namespace KinematicSteeringBehaviours {
     struct Output {
         glm::vec2 velocity;
@@ -148,14 +156,13 @@ namespace SteeringBehaviours {
         Output output{glm::vec2(0.0f), 0.0f};
 
         float angleDistance = abs(std::fmod(target - transform.angle, 360.0f));
-        printf("%f %f\n", target, angleDistance);
 
         if(angleDistance < stopRadius)
             return output;
 
         float speed = kinematic.maxAngularSpeed;
         if(angleDistance < angleRadius)
-            speed = angleDistance / angleRadius;
+            speed *= angleDistance / angleRadius;
 
         float direction = (target - transform.angle) / abs(target - transform.angle);
 
@@ -167,6 +174,35 @@ namespace SteeringBehaviours {
         }
 
         return output;
+    }
+
+    Output velocityMatch(entt::registry& registry, entt::entity owner, glm::vec2 targetVelocity) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output{glm::vec2(0.0f), 0.0f};
+        output.acceleration = targetVelocity - kinematic.velocity;
+        output.acceleration /= 0.1f;
+
+        if(glm::length(output.acceleration) > kinematic.maxAcceleration)
+            output.acceleration = glm::normalize(output.acceleration) * kinematic.maxAcceleration;
+
+        return output;
+    }
+
+    Output pursue(entt::registry& registry, entt::entity owner, entt::entity target, float maxTime) {
+        Transform& ownerTransform = registry.get<Transform>(owner);
+        Kinematic& ownerKinematic = registry.get<Kinematic>(owner);
+
+        Transform& transform = registry.get<Transform>(target);
+        Kinematic& kinematic = registry.get<Kinematic>(target);
+
+        float time = glm::length(transform.position - ownerTransform.position) / ownerKinematic.maxSpeed;
+        time = std::min(time, maxTime);
+
+        glm::vec2 targetPos = kinematic.velocity * time + transform.position;
+
+        return seek(registry, owner, targetPos);
     }
 }
 

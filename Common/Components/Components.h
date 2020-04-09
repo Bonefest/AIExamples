@@ -23,6 +23,10 @@ struct Renderable {
     SDL_Texture* texture;
 };
 
+struct Controllable {
+
+};
+
 struct Kinematic {
     Kinematic(float objMaxSpeed, float objMaxAcceleration, float objMaxAngularSpeed): velocity(0.0f, 0.0f),
                                                                                       maxSpeed(objMaxSpeed),

@@ -42,8 +42,7 @@ public:
         physicsObjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic) {
             transform.position = wrapAround(transform.position + kinematic.velocity * delta,
                                             gameData.screenSize);
-            transform.angle += kinematic.angularSpeed * delta;
-
+            transform.angle += std::fmod(kinematic.angularSpeed * delta, 360.0f);
         });
     }
 
@@ -69,10 +68,24 @@ public:
     }
 
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
+        entt::entity player = entt::null;
+
+        auto view = registry.view<Controllable>();
+        for(auto entity : view) {
+            player = entity;
+            break;
+        }
+
         auto aiobjects = registry.view<Transform, Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
-            auto output = sb::align(registry, object, vecToOrientation(glm::normalize(m_target - transform.position)), 0.1f, 10.0f);
-            kinematic.angularSpeed += output.angular * delta;
+//            auto output = sb::align(registry, object, vecToOrientation(glm::normalize(m_target - transform.position)), 0.1f, 50.0f);
+//            kinematic.angularSpeed += output.angular * delta;
+
+              auto output = sb::pursue(registry, object, player, 10.0f);
+              kinematic.velocity += output.acceleration * delta;
+              kinematic.velocity = wrapVelocity(kinematic.velocity, kinematic.maxSpeed);
+
+              transform.angle = vecToOrientation(kinematic.velocity);
         });
     }
 

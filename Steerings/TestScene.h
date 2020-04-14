@@ -58,13 +58,13 @@ public:
         entt::registry& registry = m_systemsManager.getRegistry();
 
         entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(320, 240));
-        registry.assign<Kinematic>(shipEntity, 50.0f, 50.0f, 10.0f);
+        registry.assign<Kinematic>(shipEntity, 50.0f, 50.0f, 60.0f);
         auto bmanager = make_shared<BehaviourManager>(m_systemsManager.getRegistry(), shipEntity);
         registry.assign<AI>(shipEntity, bmanager);
 
 
         entt::entity playerEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0, 0));
-        registry.assign<Kinematic>(playerEntity, 100.0f, 100.0f, 30.0f);
+        registry.assign<Kinematic>(playerEntity, 100.0f, 100.0f, 120.0f);
         registry.assign<Controllable>(playerEntity);
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));

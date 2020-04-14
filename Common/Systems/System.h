@@ -78,15 +78,14 @@ public:
 
         auto aiobjects = registry.view<Transform, Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
-//            auto output = sb::align(registry, object, vecToOrientation(glm::normalize(m_target - transform.position)), 0.1f, 50.0f);
-//            kinematic.angularSpeed += output.angular * delta;
+              auto output = sb::lookAtMovingDirection(registry, object);
+              auto output2 = sb::pursue(registry, object, player, 5.0f);
+              output.acceleration += output2.acceleration;
 
-              auto output = sb::evade(registry, object, player, 1.0f);
-              //auto output = sb::simplePursue(registry, object, player);
               kinematic.velocity += output.acceleration * delta;
               kinematic.velocity = wrapVelocity(kinematic.velocity, kinematic.maxSpeed);
 
-              transform.angle = vecToOrientation(kinematic.velocity);
+              kinematic.angularSpeed += output.angular * delta;
         });
     }
 

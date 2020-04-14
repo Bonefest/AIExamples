@@ -155,7 +155,18 @@ namespace SteeringBehaviours {
 
         Output output{glm::vec2(0.0f), 0.0f};
 
-        float angleDistance = abs(std::fmod(target - transform.angle, 360.0f));
+        float angle = transform.angle;
+
+        float angleDistance = 180.0f - std::fabs(std::fmod(std::fabs(target - angle), 360.0f) - 180.0f);    //shortest path
+
+        target = std::fmod(std::fmod(target, 360.0f) + 360.0f, 360.0f);
+        angle = std::fmod(std::fmod(transform.angle, 360.0f) + 360.0f, 360.0f);
+
+        float direction = (target - angle) / std::fabs(target - angle);
+        if(std::fabs(std::fabs(target - angle) - angleDistance) > 0.1f)
+            direction = -direction;
+
+
 
         if(angleDistance < stopRadius)
             return output;
@@ -164,7 +175,7 @@ namespace SteeringBehaviours {
         if(angleDistance < angleRadius)
             speed *= angleDistance / angleRadius;
 
-        float direction = (target - transform.angle) / abs(target - transform.angle);
+        std::cout << target << " " << angle << " " << angleDistance << std::endl;
 
         output.angular = speed * direction - kinematic.angularSpeed;
         output.angular /= 0.01f;
@@ -224,6 +235,26 @@ namespace SteeringBehaviours {
         glm::vec2 targetPos = kinematic.velocity * time + transform.position;
 
         return flee(registry, owner, targetPos, 300.0f);
+    }
+
+    Output face(entt::registry& registry, entt::entity owner, entt::entity target) {
+        Transform& ownerTransform = registry.get<Transform>(owner);
+
+        Transform& transform = registry.get<Transform>(target);
+
+        glm::vec2 vec = glm::normalize(transform.position - ownerTransform.position);
+        return align(registry, owner, vecToOrientation(vec), 0.1f, 20.0f);
+    }
+
+    Output lookAtMovingDirection(entt::registry& registry, entt::entity owner) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        float targetAngle = transform.angle;
+        if(glm::length(kinematic.velocity) > 0.01f)
+            targetAngle = vecToOrientation(kinematic.velocity);
+
+        return align(registry, owner, targetAngle, 0.1f, 50.0f);
     }
 }
 

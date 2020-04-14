@@ -112,11 +112,11 @@ namespace SteeringBehaviours {
 
         float distance = glm::length(target - transform.position);
 
-        Output output;
+        Output output{glm::vec2(0.0f, 0.0f), 0.0f};
 
         if(distance < maxRadius) {
             output.acceleration = glm::normalize(transform.position - target) * kinematic.maxAcceleration;
-        } else {
+        } else if(glm::length(kinematic.velocity) > 0.01f) {
             output.acceleration = -glm::normalize(kinematic.velocity) * kinematic.maxAcceleration;
         }
 
@@ -190,6 +190,12 @@ namespace SteeringBehaviours {
         return output;
     }
 
+    Output simplePursue(entt::registry& registry, entt::entity owner, entt::entity target) {
+        Transform& transform = registry.get<Transform>(target);
+
+        return seek(registry, owner, transform.position);
+    }
+
     Output pursue(entt::registry& registry, entt::entity owner, entt::entity target, float maxTime) {
         Transform& ownerTransform = registry.get<Transform>(owner);
         Kinematic& ownerKinematic = registry.get<Kinematic>(owner);
@@ -203,6 +209,21 @@ namespace SteeringBehaviours {
         glm::vec2 targetPos = kinematic.velocity * time + transform.position;
 
         return seek(registry, owner, targetPos);
+    }
+
+    Output evade(entt::registry& registry, entt::entity owner, entt::entity target, float maxTime) {
+        Transform& ownerTransform = registry.get<Transform>(owner);
+        Kinematic& ownerKinematic = registry.get<Kinematic>(owner);
+
+        Transform& transform = registry.get<Transform>(target);
+        Kinematic& kinematic = registry.get<Kinematic>(target);
+
+        float time = glm::length(transform.position - ownerTransform.position) / ownerKinematic.maxSpeed;
+        time = std::min(time, maxTime);
+
+        glm::vec2 targetPos = kinematic.velocity * time + transform.position;
+
+        return flee(registry, owner, targetPos, 300.0f);
     }
 }
 

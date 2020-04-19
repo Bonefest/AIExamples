@@ -78,10 +78,8 @@ public:
 
         auto aiobjects = registry.view<Transform, Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
-              auto output = sb::lookAtMovingDirection(registry, object);
-              auto output2 = sb::pursue(registry, object, player, 5.0f);
-              output.acceleration += output2.acceleration;
 
+              auto output = sb::wander_dirty(registry, object, 5.0f, 10.0f, 50.0f);
               kinematic.velocity += output.acceleration * delta;
               kinematic.velocity = wrapVelocity(kinematic.velocity, kinematic.maxSpeed);
 

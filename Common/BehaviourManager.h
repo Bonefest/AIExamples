@@ -175,8 +175,6 @@ namespace SteeringBehaviours {
         if(angleDistance < angleRadius)
             speed *= angleDistance / angleRadius;
 
-        std::cout << target << " " << angle << " " << angleDistance << std::endl;
-
         output.angular = speed * direction - kinematic.angularSpeed;
         output.angular /= 0.01f;
 
@@ -255,6 +253,26 @@ namespace SteeringBehaviours {
             targetAngle = vecToOrientation(kinematic.velocity);
 
         return align(registry, owner, targetAngle, 0.1f, 50.0f);
+    }
+
+    Output wander_dirty(entt::registry& registry, entt::entity owner, float wanderRadius, float wanderOffset, float wanderRate) {
+        static float wanderAngle = 0.0f;
+
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        wanderAngle += (drand48() - drand48()) * wanderRate;
+
+        float targetAngle = transform.angle + wanderAngle;
+        std::cout << targetAngle << std::endl;
+
+        glm::vec2 target = transform.position + orientationToVec(glm::radians(transform.angle)) * wanderOffset;
+        target = target + orientationToVec(glm::radians(targetAngle)) * wanderRadius;
+
+        Output output = align(registry, owner, vecToOrientation(glm::normalize(target - transform.position)), 0.1f, 10.0f);
+        output.acceleration = orientationToVec(glm::radians(transform.angle)) * kinematic.maxAcceleration;
+
+        return output;
     }
 }
 

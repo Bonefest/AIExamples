@@ -42,7 +42,7 @@ struct Segment {
         // Reference: stackoverflow.com/questions/10301001/perpendicular-on-a-line-segment-from-a-given-point
 
         float t = glm::dot(worldPosition - start, end - start);
-        t /= (glm::pow(glm::length(end - start), 2) + glm::pow(glm::length(end - start), 2));
+        t /= glm::pow(glm::length(end - start), 2);
 
         return start + t * (end - start);
     }
@@ -66,7 +66,7 @@ struct Segment {
 
 class SegmentedPath {
 public:
-    float getParam(glm::vec2 position) {
+    float getParam(glm::vec2 position) const {
 
         auto closestSegmentIdx = 0u;
         for(auto i = 0u; i < m_segments.size(); ++i) {
@@ -78,17 +78,18 @@ public:
 
         float t = 0.0f;
         if(closestSegmentIdx > 0) {
-            for(auto i = 0u; i < closestSegmentIdx - 1; i++) {
+            for(auto i = 0u; i <= closestSegmentIdx - 1; i++) {
                 t += m_segments[i].length();
             }
         }
-
+        //std::cout << position.x << " " << position.y << std::endl;
+        //std::cout << closestSegmentIdx << " " << m_segments[closestSegmentIdx].getProjectedPoint(position).x << " " << m_segments[closestSegmentIdx].getProjectedPoint(position).y << std::endl;
         t += glm::length(m_segments[closestSegmentIdx].getProjectedPoint(position) - m_segments[closestSegmentIdx].start);
 
         return t;
     }
 
-    glm::vec2 getPosition(float param) {
+    glm::vec2 getPosition(float param) const {
         auto segmentIndex = 0u;
         while(param > m_segments[segmentIndex].length()) {
             param -= m_segments[segmentIndex].length();
@@ -97,7 +98,7 @@ public:
 
         if(segmentIndex >= m_segments.size()) return glm::vec2(0.0f, 0.0f);
 
-        return m_segments[segmentIndex].direction() * param;
+        return m_segments[segmentIndex].start + m_segments[segmentIndex].direction() * param;
     }
 
     void setPath(std::vector<Segment> segments) {

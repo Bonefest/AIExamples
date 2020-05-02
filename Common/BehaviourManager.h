@@ -275,6 +275,15 @@ namespace SteeringBehaviours {
 
         return output;
     }
+
+    Output followPath(entt::registry& registry, entt::entity owner, const SegmentedPath& path) {
+
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+        glm::vec2 target = path.getPosition(path.getParam(transform.position) + 40.0f);
+        //std::cout << target.x << " " << target.y << "t: " << path.getParam(transform.position) << "\n";
+        return seek(registry, owner, target);
+    }
 }
 
 namespace sb = SteeringBehaviours;

@@ -1782,9 +1782,10 @@
 
 1578255577 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Dependencies/glm/simd/integer.h
 
-1587324537 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/BehaviourManager.h
+1588451700 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/BehaviourManager.h
 	"glm/glm.hpp"
 	"Components/Components.h"
+	"../Path.h"
 
 1585859366 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Events/Events.h
 
@@ -1795,4 +1796,7 @@
 	<map>
 	<string>
 	"SDL2/SDL_image.h"
+
+1588452326 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Path.h
+	<vector>
 

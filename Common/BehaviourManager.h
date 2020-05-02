@@ -3,6 +3,7 @@
 
 #include "glm/glm.hpp"
 #include "Components/Components.h"
+#include "../Path.h"
 
 
 struct SteeringOutput {

@@ -1,6 +1,28 @@
 #ifndef PATH_H_INCLUDED
 #define PATH_H_INCLUDED
 
+/*
+ * Class for different styles of paths for following path steering behaviors.
+ *
+ * The general idea behind paths are simple: some object has or take a path,
+ * then looking for nearest point on the path from the current position. Then
+ * It looks for some next point on the path and starts moving to the next point
+ * with Seek behavior.
+ *
+ * Path uses a single parameter variable for describing a position.
+ *
+ * Whenever we need to convert a global position to parameter or vice versa
+ * we use a getParam(vector) or getPosition(parameter) for achieving that.
+ *
+ * Different paths uses different approaches. For example, FormulaPath uses
+ * some sort of formula to get a parameter - it takes a vector and translates
+ * it with a early set formula (it's a 2 variables function:
+ *                                                t = f(x,y) = f(vector))
+ * ----------------------------------------------------------------------------
+ * So in general we have an interface for translating coordinates to 1-D path`s
+ * coordinates or vice versa. That's all!
+ *
+ */
 class IPath {
 public:
     virtual float getParam(glm::vec2 position) = 0;
@@ -9,50 +31,81 @@ public:
 
 #include <vector>
 
+struct Segment {
+
+    glm::vec2 getProjectedPoint(glm::vec2 worldPosition) const {
+
+        // We solve two equations:
+        // start + t*(end - start) = D
+        // (end - start).(worldPosition - D) = 0
+        //
+        // Reference: stackoverflow.com/questions/10301001/perpendicular-on-a-line-segment-from-a-given-point
+
+        float t = glm::dot(worldPosition - start, end - start);
+        t /= (glm::pow(glm::length(end - start), 2) + glm::pow(glm::length(end - start), 2));
+
+        return start + t * (end - start);
+    }
+
+    float getDistanceToPoint(glm::vec2 worldPosition) const {
+        auto projected = getProjectedPoint(worldPosition);
+        return glm::length(worldPosition - projected);
+    }
+
+    float length() const {
+        return glm::length(start - end);
+    }
+
+    glm::vec2 direction() const {
+        return glm::normalize(end - start);
+    }
+
+    glm::vec2 start;
+    glm::vec2 end;
+};
+
 class SegmentedPath {
 public:
     float getParam(glm::vec2 position) {
-        if(m_vertices.size() < 2) return 0.0f;
 
-        std::size_t nearestVertexIndex = 0;
-        for(std::size_t i = 0; i < m_vertices.size(); ++i) {
-            if(glm::distance(position, m_vertices[i]) < glm::distance(position, m_vertices[nearestVertexIndex]))
-                nearestVertexIndex = i;
-        }
-
-        glm::vec2 directionToTarget = glm::normalize(position - m_vertices[nearestVertexIndex]);
-        std::size_t segmentIndex = nearestVertexIndex;
-        float minAngle = 360.0f;
-
-        if(nearestVertexIndex != 0) {
-            segmentIndex = nearestVertexIndex - 1;
-            glm::vec2 segment = m_vertices[nearestVertexIndex - 1] - m_vertices[nearestVertexIndex];
-            minAngle = std::acos(glm::dot(glm::normalize(segment), directionToTarget));
-        }
-
-        if(nearestVertexIndex != m_vertices.size() - 1) {
-            glm::vec2 segment = m_vertices[nearestVertexIndex + 1] - m_vertices[nearestVertexIndex];
-            float angle = std::acos(glm::dot(glm::normalize(segment), directionToTarget));
-
-            if(angle < minAngle) {
-                segmentIndex = nearestVertexIndex + 1;
+        auto closestSegmentIdx = 0u;
+        for(auto i = 0u; i < m_segments.size(); ++i) {
+            if(m_segments[i].getDistanceToPoint(position) <
+               m_segments[closestSegmentIdx].getDistanceToPoint(position)) {
+                closestSegmentIdx = i;
             }
         }
 
-        glm::vec2 segment = m_vertices[segmentIndex] - m_vertices[nearestVertexIndex];
-        glm::vec2 projectedPoint = glm::dot(segment, directionToTarget) * glm::normalize(segment);
+        float t = 0.0f;
+        if(closestSegmentIdx > 0) {
+            for(auto i = 0u; i < closestSegmentIdx - 1; i++) {
+                t += m_segments[i].length();
+            }
+        }
 
-        //finding parameter...
+        t += glm::length(m_segments[closestSegmentIdx].getProjectedPoint(position) - m_segments[closestSegmentIdx].start);
+
+        return t;
     }
 
-    glm::vec2 getPosition(float param);
+    glm::vec2 getPosition(float param) {
+        auto segmentIndex = 0u;
+        while(param > m_segments[segmentIndex].length()) {
+            param -= m_segments[segmentIndex].length();
+            segmentIndex++;
+        }
 
-    void setPath(std::vector<glm::vec2> vertices) {
-        m_vertices = vertices;
+        if(segmentIndex >= m_segments.size()) return glm::vec2(0.0f, 0.0f);
+
+        return m_segments[segmentIndex].direction() * param;
+    }
+
+    void setPath(std::vector<Segment> segments) {
+        m_segments = segments;
     }
 
 private:
-    std::vector<glm::vec2> m_vertices;
+    std::vector<Segment> m_segments;
     float m_pathLength;
 };
 

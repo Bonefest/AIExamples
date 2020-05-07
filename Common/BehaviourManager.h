@@ -276,12 +276,31 @@ namespace SteeringBehaviours {
         return output;
     }
 
-    Output followPath(entt::registry& registry, entt::entity owner, const SegmentedPath& path) {
+    Output followPath(entt::registry& registry, entt::entity owner, entt::entity epath) {
+        if(!registry.valid(epath) || !registry.has<Path>(epath)) return Output{};
 
         Transform& transform = registry.get<Transform>(owner);
         Kinematic& kinematic = registry.get<Kinematic>(owner);
-        glm::vec2 target = path.getPosition(path.getParam(transform.position) + 40.0f);
-        //std::cout << target.x << " " << target.y << "t: " << path.getParam(transform.position) << "\n";
+        const auto& path = registry.get<Path>(epath).path;
+
+        glm::vec2 target = path->getPosition(path->getParam(transform.position) + 80.0f);
+
+        return seek(registry, owner, target);
+    }
+
+    Output followPredictedPath(entt::registry& registry, entt::entity owner, float time, entt::entity epath) {
+        if(!registry.valid(epath) || !registry.has<Path>(epath)) return Output{};
+
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+        const auto& path = registry.get<Path>(epath).path;
+
+        glm::vec2 velocity = kinematic.velocity;
+        if(glm::length(velocity) > 0.01f)
+            velocity = glm::normalize(velocity);
+
+        glm::vec2 target = transform.position + velocity * kinematic.maxSpeed * time;
+        target = path->getPosition(path->getParam(target) + 40.0f);
         return seek(registry, owner, target);
     }
 }

@@ -25,8 +25,12 @@
  */
 class IPath {
 public:
-    virtual float getParam(glm::vec2 position) = 0;
-    virtual glm::vec2 getPosition(float param) = 0;
+    virtual float getParam(glm::vec2 position) const = 0;
+    virtual glm::vec2 getPosition(float param) const = 0;
+
+    virtual std::vector<glm::vec2> generateVertices() const {
+        return std::vector<glm::vec2>{};
+    }
 };
 
 #include <vector>
@@ -64,7 +68,7 @@ struct Segment {
     glm::vec2 end;
 };
 
-class SegmentedPath {
+class SegmentedPath: public IPath {
 public:
     float getParam(glm::vec2 position) const {
 
@@ -82,8 +86,7 @@ public:
                 t += m_segments[i].length();
             }
         }
-        //std::cout << position.x << " " << position.y << std::endl;
-        //std::cout << closestSegmentIdx << " " << m_segments[closestSegmentIdx].getProjectedPoint(position).x << " " << m_segments[closestSegmentIdx].getProjectedPoint(position).y << std::endl;
+
         t += glm::length(m_segments[closestSegmentIdx].getProjectedPoint(position) - m_segments[closestSegmentIdx].start);
 
         return t;
@@ -103,6 +106,20 @@ public:
 
     void setPath(std::vector<Segment> segments) {
         m_segments = segments;
+    }
+
+    std::vector<glm::vec2> generateVertices() const {
+        if(m_segments.empty()) return std::vector<glm::vec2>{};
+
+        std::vector<glm::vec2> result;
+        for(auto segment: m_segments) {
+            result.push_back(segment.start);
+            result.push_back(segment.end);
+        }
+
+        result.push_back(m_segments.back().end);
+
+        return result;
     }
 
 private:

@@ -5,6 +5,7 @@
 using std::shared_ptr;
 
 #include "glm/glm.hpp"
+#include "../../Path.h"
 
 struct Transform {
     explicit Transform(glm::vec2 objPosition, glm::vec2 objSize, float objScale, float objAngle): position(objPosition),
@@ -21,6 +22,13 @@ struct Transform {
 struct Renderable {
     explicit Renderable(SDL_Texture* text): texture(text) { }
     SDL_Texture* texture;
+};
+
+struct Path {
+    Path(shared_ptr<IPath> t_path, bool t_needRendering = true): path(t_path),
+                                                                 needRendering(t_needRendering) { }
+    shared_ptr<IPath> path;
+    bool needRendering;
 };
 
 struct Controllable {

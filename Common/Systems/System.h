@@ -34,6 +34,42 @@ private:
     SDL_Renderer* m_renderer;
 };
 
+class PathRenderingSystem: public ISystem {
+public:
+    PathRenderingSystem(SDL_Renderer* renderer): m_renderer(renderer) { }
+
+    virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
+        auto pathView = registry.view<Path>();
+        for(auto path: pathView) {
+            const Path& pathComponent = registry.get<Path>(path);
+            if(!pathComponent.needRendering) continue;
+
+            auto vertices = pathComponent.path->generateVertices();
+            if(vertices.size() > 1) {
+                for(auto i = 0u; i < vertices.size() - 1; ++i) {
+
+                    auto start = vertices[i];
+                    auto end = vertices[i + 1];
+
+                    Uint8 r, g, b, a;
+                    SDL_GetRenderDrawColor(m_renderer, &r, &g, &b, &a);
+                    SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+                    SDL_RenderDrawLine(m_renderer,
+                                       std::round(start.x),
+                                       std::round(start.y),
+                                       std::round(end.x),
+                                       std::round(end.y));
+
+                    SDL_SetRenderDrawColor(m_renderer, r, g, b, a);
+                }
+            }
+        }
+    }
+
+private:
+    SDL_Renderer* m_renderer;
+};
+
 class PhysicsSystem: public ISystem {
 public:
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
@@ -66,7 +102,8 @@ public:
 
     virtual void enter(entt::registry& registry, entt::dispatcher& dispatcher) {
         dispatcher.sink<MouseEvent>().connect<&AISteeringSystem::onMouseEvent>(*this);
-        m_path.setPath({
+        auto path = std::make_shared<SegmentedPath>();
+        path->setPath({
                        {glm::vec2(0.0f, 10.0f), glm::vec2(100.0f, 10.0f)},
                        {glm::vec2(100.0f, 10.0f), glm::vec2(100.0f, 110.0f)},
                        {glm::vec2(100.0f, 110.0f), glm::vec2(200.0f, 110.0f)},
@@ -74,7 +111,10 @@ public:
                        {glm::vec2(200.0f, 210.0f), glm::vec2(100.0f, 310.0f)},
                        {glm::vec2(100.0f, 310.0f), glm::vec2(0.0f, 210.0f)},
                        {glm::vec2(0.0f, 210.0f), glm::vec2(0.0f, 10.0f)},
-                       });
+                      });
+
+        m_path = registry.create();
+        registry.assign<Path>(m_path, path);
     }
 
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
@@ -101,15 +141,11 @@ public:
     void onMouseEvent(const MouseEvent& event) {
         if(event.event.type == SDL_MOUSEBUTTONDOWN)
             m_target = glm::vec2(event.event.x, event.event.y);
-        std::cout << m_path.getParam(glm::vec2(event.event.x, event.event.y)) << std::endl;
-//        std::cout << m_path.getPosition(m_path.getParam(glm::vec2(event.event.x, event.event.y))).x << " "
-//                  << m_path.getPosition(m_path.getParam(glm::vec2(event.event.x, event.event.y))).y << "\n";
-//        std::cout << event.event.x << " " << event.event.y << std::endl;
     }
 
 private:
     glm::vec2 m_target;
-    SegmentedPath m_path;
+    entt::entity m_path;
 
 };
 

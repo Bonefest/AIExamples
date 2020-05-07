@@ -50,6 +50,7 @@ public:
 
     void initSystems() {
         m_systemsManager.addSystem(make_shared<RenderingSystem>(m_prenderer));
+        m_systemsManager.addSystem(make_shared<PathRenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<PhysicsSystem>());
         m_systemsManager.addSystem(make_shared<AISteeringSystem>());
     }

@@ -129,7 +129,7 @@ public:
         auto aiobjects = registry.view<Transform, Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
 
-              auto output = sb::separation(registry, object, 20000.0f, 100.0f, std::vector<entt::entity>{player});
+              auto output = sb::collisionAvoidance(registry, object, 200.0f, std::vector<entt::entity>{player});
               kinematic.velocity += output.acceleration * delta;
               kinematic.velocity = wrapVelocity(kinematic.velocity, kinematic.maxSpeed);
 

@@ -324,6 +324,55 @@ namespace SteeringBehaviours {
         return output;
     }
 
+    Output collisionAvoidance(entt::registry& registry, entt::entity owner, float radius, std::vector<entt::entity> targets) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        entt::entity closestEntity = entt::null;
+        float max_time = 5.0f;
+        float shortestTime = max_time;
+
+        for(auto target: targets) {
+            if(!registry.valid(target) ||
+               !registry.has<Kinematic>(target) ||
+               !registry.has<Transform>(target)) continue;
+
+            Transform& targetTransform = registry.get<Transform>(target);
+            Kinematic& targetKinematic = registry.get<Kinematic>(target);
+
+            glm::vec2 rp = targetTransform.position - transform.position;
+            glm::vec2 rv = targetKinematic.velocity - kinematic.velocity;
+
+            float t = glm::dot(rp, rv) / glm::pow(glm::length(rv), 2);
+            std::cout <<t << std::endl;
+
+            if(t > max_time || t < 0.0f) continue;
+
+            if(t < shortestTime) {
+                shortestTime = t;
+                closestEntity = target;
+            }
+
+        }
+
+
+        Output output{};
+        if(registry.valid(closestEntity)) {
+            Transform& targetTransform = registry.get<Transform>(closestEntity);
+            Kinematic& targetKinematic = registry.get<Kinematic>(closestEntity);
+
+            glm::vec2 futurePos = transform.position + kinematic.velocity * shortestTime;
+            glm::vec2 targetFuturePos = targetTransform.position + targetKinematic.velocity * shortestTime;
+
+            glm::vec2 relativePos = futurePos - targetFuturePos;
+
+            if(glm::length(relativePos) < radius) {
+                output.acceleration = glm::normalize(relativePos) * kinematic.maxAcceleration;
+            }
+        }
+
+        return output;
+    }
 }
 
 namespace sb = SteeringBehaviours;

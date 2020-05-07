@@ -114,7 +114,7 @@ public:
                       });
 
         m_path = registry.create();
-        registry.assign<Path>(m_path, path);
+        registry.assign<Path>(m_path, path, false);
     }
 
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
@@ -129,7 +129,7 @@ public:
         auto aiobjects = registry.view<Transform, Kinematic, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
 
-              auto output = sb::followPath(registry, object, m_path);
+              auto output = sb::separation(registry, object, 20000.0f, 100.0f, std::vector<entt::entity>{player});
               kinematic.velocity += output.acceleration * delta;
               kinematic.velocity = wrapVelocity(kinematic.velocity, kinematic.maxSpeed);
 

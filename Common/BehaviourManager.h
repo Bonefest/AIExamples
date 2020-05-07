@@ -300,9 +300,30 @@ namespace SteeringBehaviours {
             velocity = glm::normalize(velocity);
 
         glm::vec2 target = transform.position + velocity * kinematic.maxSpeed * time;
-        target = path->getPosition(path->getParam(target) + 40.0f);
+        target = path->getPosition(path->getParam(target) + 80.0f);
         return seek(registry, owner, target);
     }
+
+    Output separation(entt::registry& registry, entt::entity owner, float k, float threshold, std::vector<entt::entity> targets) {
+        Transform& transform = registry.get<Transform>(owner);
+        Kinematic& kinematic = registry.get<Kinematic>(owner);
+
+        Output output;
+        for(auto target: targets) {
+            if(auto targetTransform = registry.try_get<Transform>(target); targetTransform) {
+                glm::vec2 direction = transform.position - targetTransform->position;
+                float distance = glm::length(direction);
+                if(distance < threshold) {
+                    float strength = std::min(k / (distance * distance), kinematic.maxAcceleration);
+
+                    output.acceleration += direction / distance * strength;
+                }
+            }
+        }
+
+        return output;
+    }
+
 }
 
 namespace sb = SteeringBehaviours;

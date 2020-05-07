@@ -58,7 +58,7 @@ public:
     void initEntities() {
         entt::registry& registry = m_systemsManager.getRegistry();
 
-        entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(20.0f, 10.0f));
+        entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
         registry.assign<Kinematic>(shipEntity, 50.0f, 50.0f, 60.0f);
         auto bmanager = make_shared<BehaviourManager>(m_systemsManager.getRegistry(), shipEntity);
         registry.assign<AI>(shipEntity, bmanager);

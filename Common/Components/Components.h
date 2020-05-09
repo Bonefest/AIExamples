@@ -4,6 +4,7 @@
 #include <memory>
 using std::shared_ptr;
 
+#include "SDL2/SDL.h"
 #include "glm/glm.hpp"
 #include "../../Path.h"
 
@@ -49,11 +50,25 @@ struct Kinematic {
     float maxAngularSpeed;
 };
 
-#include "../BehaviourManager.h"
+struct Physics {
+    Physics(float t_maxSpeed, float t_mass, float t_maxForce, float t_maxTurnRate): maxSpeed(t_maxSpeed),
+                                                                                     mass(t_mass),
+                                                                                     maxForce(t_maxForce),
+                                                                                     maxTurnRate(t_maxTurnRate),
+                                                                                     velocity(0.0f, 0.0f) { }
+    float maxSpeed;
+    float mass;
+    float maxForce;
+    float maxTurnRate;
+
+    glm::vec2 velocity;
+};
+
+#include "../SteeringManager.h"
 
 struct AI {
-    explicit AI(shared_ptr<BehaviourManager> bmanager) : manager(bmanager) { }
-    shared_ptr<BehaviourManager> manager;
+    explicit AI(shared_ptr<SteeringManager> bmanager) : manager(bmanager) { }
+    shared_ptr<SteeringManager> manager;
 };
 
 #endif // COMPONENTS_H_INCLUDED

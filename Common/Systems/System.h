@@ -126,15 +126,10 @@ public:
             break;
         }
 
-        auto aiobjects = registry.view<Transform, Kinematic, AI>();
-        aiobjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic, AI& ai) {
+        auto aiobjects = registry.view<Transform, Physics, AI>();
+        aiobjects.each([&](entt::entity object, Transform& transform, Physics& physics, AI& ai) {
+                glm::vec2 force = ai.manager->calculate();
 
-              auto output = sb::collisionAvoidance(registry, object, 200.0f, std::vector<entt::entity>{player});
-              kinematic.velocity += output.acceleration * delta;
-              kinematic.velocity = wrapVelocity(kinematic.velocity, kinematic.maxSpeed);
-
-              //kinematic.angularSpeed += output.angular * delta;
-              transform.angle = vecToOrientation(kinematic.velocity);
         });
     }
 

@@ -899,7 +899,7 @@
 	<string>
 	"SDL2/SDL_image.h"
 
-1588870049 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Steerings/TestScene.h
+1589052674 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Steerings/TestScene.h
 	"GameManager.h"
 	"TextureManager.h"
 	<set>
@@ -918,7 +918,7 @@
 	<vector>
 	"Systems/System.h"
 
-1588870062 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Systems/System.h
+1589053075 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Systems/System.h
 	"entt.hpp"
 	"../Components/Components.h"
 	"../Events/Events.h"
@@ -1135,11 +1135,12 @@
 	<list>
 	<iterator>
 
-1588861125 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Components/Components.h
+1589053300 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Components/Components.h
 	<memory>
+	"SDL2/SDL.h"
 	"glm/glm.hpp"
 	"../../Path.h"
-	"../BehaviourManager.h"
+	"../SteeringManager.h"
 
 1578255577 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Dependencies/glm/glm.hpp
 	"detail/_fixes.hpp"
@@ -1784,7 +1785,7 @@
 
 1578255577 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/Dependencies/glm/simd/integer.h
 
-1588870424 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/BehaviourManager.h
+1589051903 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/BehaviourManager.h
 	"glm/glm.hpp"
 	"Components/Components.h"
 	"../Path.h"
@@ -1801,4 +1802,8 @@
 
 1588862146 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Path.h
 	<vector>
+
+1589053209 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/SteeringManager.h
+	<glm/glm.hpp>
+	"entt.hpp"
 

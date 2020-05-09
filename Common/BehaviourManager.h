@@ -11,22 +11,6 @@ struct SteeringOutput {
     float angular;
 };
 
- float vecToOrientation(glm::vec2 vector) {
-    return glm::degrees(std::atan2(vector.y, vector.x));
-}
-
-glm::vec2 orientationToVec(float angle) {
-    return glm::vec2(std::cos(angle), std::sin(angle));
-}
-
-glm::vec2 wrapVelocity(glm::vec2 velocity, float maxSpeed) {
-    if(glm::length(velocity) > maxSpeed) {
-        velocity = glm::normalize(velocity) * maxSpeed;
-    }
-
-    return velocity;
-}
-
 namespace KinematicSteeringBehaviours {
     struct Output {
         glm::vec2 velocity;
@@ -376,19 +360,5 @@ namespace SteeringBehaviours {
 }
 
 namespace sb = SteeringBehaviours;
-
-class BehaviourManager {
-public:
-    BehaviourManager(entt::registry& registry, entt::entity owner): m_rregistry(registry),
-                                                                    m_owner(owner) { }
-
-
-private:
-
-    entt::registry& m_rregistry;
-    entt::entity m_owner;
-};
-
-
 
 #endif // BEHAVIOURMANAGER_H_INCLUDED

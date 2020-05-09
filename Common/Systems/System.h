@@ -75,11 +75,12 @@ public:
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
         GameData& gameData = registry.ctx<GameData>();
 
-        auto physicsObjects = registry.view<Transform, Kinematic>();
-        physicsObjects.each([&](entt::entity object, Transform& transform, Kinematic& kinematic) {
-            transform.position = wrapAround(transform.position + kinematic.velocity * delta,
+        auto physicsObjects = registry.view<Transform, Physics>();
+        physicsObjects.each([&](entt::entity object, Transform& transform, Physics& physics) {
+            transform.position = wrapAround(transform.position + physics.velocity * delta,
                                             gameData.screenSize);
-            transform.angle += std::fmod(kinematic.angularSpeed * delta, 360.0f);
+
+            transform.angle = vecToOrientation(physics.velocity);
         });
     }
 
@@ -128,8 +129,11 @@ public:
 
         auto aiobjects = registry.view<Transform, Physics, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Physics& physics, AI& ai) {
-                glm::vec2 force = ai.manager->calculate();
+            ai.manager->target = m_target;
 
+            glm::vec2 force = wrapVector(ai.manager->calculate(), physics.maxForce);
+            glm::vec2 acceleration = force * (1.0f / physics.mass) * 200.0f;
+            physics.velocity = wrapVector(physics.velocity + acceleration * delta, physics.maxSpeed);
         });
     }
 

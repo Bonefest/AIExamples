@@ -6,11 +6,11 @@
 
 float vecToOrientation(glm::vec2 vector);
 glm::vec2 orientationToVec(float angle);
-glm::vec2 wrapVelocity(glm::vec2 velocity, float maxSpeed);
+glm::vec2 wrapVector(glm::vec2 vector, float maxLength);
 
 class SteeringManager {
 public:
-    //TEMP
+    glm::vec2 target;
 
     SteeringManager(entt::registry* registry, entt::entity owner);
 
@@ -18,6 +18,9 @@ public:
 
     //Strategy pattern? i.e for each behavior its own class
     glm::vec2 seek(glm::vec2 target);
+    glm::vec2 flee(glm::vec2 target);
+    glm::vec2 arrive(glm::vec2 target);
+
 private:
     entt::registry* m_registry;
     entt::entity m_owner;

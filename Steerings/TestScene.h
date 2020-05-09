@@ -59,14 +59,14 @@ public:
         entt::registry& registry = m_systemsManager.getRegistry();
 
         entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
-        registry.assign<Physics>(shipEntity, 100.0f, 20.0f, 2.0f, 100.0f);
+        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 2.0f, 100.0f);
 
         auto smanager = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity);
         registry.assign<AI>(shipEntity, smanager);
 
 
         entt::entity playerEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0, 0));
-        registry.assign<Kinematic>(playerEntity, 100.0f, 100.0f, 120.0f);
+        registry.assign<Physics>(playerEntity, 100.0f, 20.0f, 2.0f, 100.0f);
         registry.assign<Controllable>(playerEntity);
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));

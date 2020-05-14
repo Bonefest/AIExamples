@@ -5,12 +5,13 @@
 #include <iostream>
 
 SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): m_registry(registry),
-                                                                   m_owner(owner) { }
+                                                                                m_owner(owner),
+                                                                                m_wanderLastOrientation(0.0f, 0.0f) { }
 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
-    totalForce += evade(target);
+    totalForce += wander();
 
     return totalForce;
 }
@@ -20,7 +21,7 @@ glm::vec2 SteeringManager::seek(glm::vec2 target) {
     auto& transformComponent = m_registry->get<Transform>(m_owner);
     auto& physicsComponent = m_registry->get<Physics>(m_owner);
 
-    glm::vec2 desiredVelocity = glm::normalize(target - transformComponent.position) * physicsComponent.maxSpeed;
+    glm::vec2 desiredVelocity = safeNormalize(target - transformComponent.position) * physicsComponent.maxSpeed;
     return desiredVelocity - physicsComponent.velocity;
 }
 
@@ -103,6 +104,32 @@ glm::vec2 SteeringManager::evade(entt::entity target) {
         predictTime = distance / totalSpeed;
 
     return flee(targetTransformComponent.position + targetPhysicsComponent.velocity * predictTime);
+}
+
+glm::vec2 SteeringManager::wander() {
+    //TODO: Get/Set wander parameters
+    static float wanderOffset = 50.0f;
+    static float wanderRadius = 10.0f;
+    static float wanderMaxLength = 1.0f;
+
+
+    //For better experience
+    //wanderOffset = (std::sin(SDL_GetTicks() / 1000.0f) + 1.0f) * 0.5f * 40.0f + 10.0f;
+    //wanderMaxLength = (std::sin(SDL_GetTicks() / 5000.0f) + 1.0f) * 5.0f;
+
+    auto& transformComponent = m_registry->get<Transform>(m_owner);
+    auto& physicsComponent = m_registry->get<Physics>(m_owner);
+
+    glm::vec2 randDirection = glm::vec2(drand48() - drand48(), drand48() - drand48());
+    randDirection = safeNormalize(randDirection) * wanderMaxLength;
+
+    m_wanderLastOrientation = safeNormalize(m_wanderLastOrientation + randDirection) * wanderRadius;
+    //std::cout << m_wanderLastOrientation.x << " " << m_wanderLastOrientation.y << std::endl;
+
+    glm::vec2 targetPosition = transformComponent.position +
+                               safeNormalize(physicsComponent.velocity) * wanderOffset +
+                               m_wanderLastOrientation;
+    return seek(targetPosition);
 }
 
 float vecToOrientation(glm::vec2 vector) {

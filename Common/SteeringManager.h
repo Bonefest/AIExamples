@@ -30,9 +30,13 @@ public:
     glm::vec2 pursuit(entt::entity target);
     glm::vec2 evade(entt::entity target);
 
+    glm::vec2 wander();
+
 private:
     entt::registry* m_registry;
     entt::entity m_owner;
+
+    glm::vec2 m_wanderLastOrientation;
 };
 
 

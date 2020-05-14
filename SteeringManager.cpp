@@ -8,7 +8,7 @@ SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
-    totalForce += arrive(target);
+    totalForce += pursuit(target);
 
     return totalForce;
 }
@@ -36,16 +36,38 @@ glm::vec2 SteeringManager::flee(glm::vec2 target) {
 }
 
 
-glm::vec2 SteeringManager::arrive(glm::vec2 target) {
+glm::vec2 SteeringManager::arrive(glm::vec2 target,
+                                  Deceleration deceleration) {
     auto& transformComponent = m_registry->get<Transform>(m_owner);
     auto& physicsComponent = m_registry->get<Physics>(m_owner);
 
     glm::vec2 direction = target - transformComponent.position;
     float distance = glm::distance(transformComponent.position, target);
-    float speed = distance; // * constant
+    float dec = 0.3f * int(deceleration);
+
+    float speed = distance / dec;
 
     glm::vec2 desiredVelocity = (direction / distance) * speed;
     return desiredVelocity - physicsComponent.velocity;
+}
+
+glm::vec2 SteeringManager::pursuit(entt::entity target) {
+    auto& transformComponent = m_registry->get<Transform>(m_owner);
+    auto& targetTransformComponent = m_registry->get<Transform>(target);
+
+    auto& physicsComponent = m_registry->get<Physics>(m_owner);
+    auto& targetPhysicsComponent = m_registry->get<Physics>(target);
+
+
+    float distance = glm::distance(transformComponent.position, targetTransformComponent.position);
+    float totalSpeed = glm::length(physicsComponent.velocity) + glm::length(targetPhysicsComponent.velocity);
+    float predictTime = 0.0f;
+
+    if(totalSpeed > 0.01f) {
+        predictTime = distance / totalSpeed;
+    }
+
+    return seek(targetTransformComponent.position + targetPhysicsComponent.velocity * predictTime);
 }
 
 float vecToOrientation(glm::vec2 vector) {

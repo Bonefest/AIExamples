@@ -59,14 +59,14 @@ public:
         entt::registry& registry = m_systemsManager.getRegistry();
 
         entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
-        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 2.0f, 100.0f);
+        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f);
 
         auto smanager = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity);
         registry.assign<AI>(shipEntity, smanager);
 
 
         entt::entity playerEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0, 0));
-        registry.assign<Physics>(playerEntity, 100.0f, 20.0f, 2.0f, 100.0f);
+        registry.assign<Physics>(playerEntity, 300.0f, 1.0f, 600.0f, 100.0f);
         registry.assign<Controllable>(playerEntity);
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));
@@ -76,7 +76,7 @@ public:
         auto& registry = m_systemsManager.getRegistry();
         entt::entity player = entt::null;
 
-        auto playerView = registry.view<Controllable, Transform, Kinematic>();
+        auto playerView = registry.view<Controllable, Transform, Physics>();
         for(auto entity : playerView) {
             player = entity;
         }
@@ -84,27 +84,25 @@ public:
         if(registry.valid(player)) {
 
             Transform& playerTransform = registry.get<Transform>(player);
-            Kinematic& playerKinematic = registry.get<Kinematic>(player);
+            Physics& playerPhysics = registry.get<Physics>(player);
 
             bool moving = false;
             for(SDL_Keycode pressedKey : m_pressedKeys) {
                 if(pressedKey == SDLK_w) {
-                    playerKinematic.velocity += orientationToVec(glm::radians(playerTransform.angle)) * playerKinematic.maxAcceleration * delta;
-                    if(glm::length(playerKinematic.velocity) > playerKinematic.maxSpeed) {
-                        playerKinematic.velocity = glm::normalize(playerKinematic.velocity) * playerKinematic.maxSpeed;
-                    }
+                    float acceleration = playerPhysics.maxForce / playerPhysics.mass;
+                    playerPhysics.velocity += orientationToVec(glm::radians(playerTransform.angle)) * acceleration * delta;
+                    playerPhysics.velocity = wrapVector(playerPhysics.velocity, playerPhysics.maxSpeed);
                     moving = true;
                 }
 
                 else if(pressedKey == SDLK_a) {
-                    playerTransform.angle -= playerKinematic.maxAngularSpeed * delta;
+                    playerTransform.angle -= playerPhysics.maxTurnRate * delta;
                 } else if(pressedKey == SDLK_d) {
-                    playerTransform.angle += playerKinematic.maxAngularSpeed * delta;
-                    std::cout << playerTransform.angle << "\n";
+                    playerTransform.angle += playerPhysics.maxTurnRate * delta;
                 }
             }
             if(!moving)
-                playerKinematic.velocity += (glm::vec2(0.0f, 0.0f) - playerKinematic.velocity) / 0.5f * delta;
+                playerPhysics.velocity -= playerPhysics.velocity * 2.0f * delta;
         }
         SDL_SetRenderDrawColor(m_prenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(m_prenderer);

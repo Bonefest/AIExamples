@@ -80,7 +80,6 @@ public:
             transform.position = wrapAround(transform.position + physics.velocity * delta,
                                             gameData.screenSize);
 
-            transform.angle = vecToOrientation(physics.velocity);
         });
     }
 
@@ -129,11 +128,17 @@ public:
 
         auto aiobjects = registry.view<Transform, Physics, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Physics& physics, AI& ai) {
-            ai.manager->target = m_target;
+            ai.manager->target = player;
 
-            glm::vec2 force = wrapVector(ai.manager->calculate(), physics.maxForce);
-            glm::vec2 acceleration = force * (1.0f / physics.mass) * 200.0f;
+            glm::vec2 force = ai.manager->calculate();
+            //We temporary make result force maximal
+            if(glm::length(force) > 0.01f) {
+                force = glm::normalize(force);
+            }
+            glm::vec2 acceleration = force * (1.0f / physics.mass) * physics.maxForce;
             physics.velocity = wrapVector(physics.velocity + acceleration * delta, physics.maxSpeed);
+
+            transform.angle = vecToOrientation(physics.velocity);
         });
     }
 

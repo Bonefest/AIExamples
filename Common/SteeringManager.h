@@ -10,7 +10,9 @@ glm::vec2 wrapVector(glm::vec2 vector, float maxLength);
 
 class SteeringManager {
 public:
-    glm::vec2 target;
+    enum Deceleration { FAST = 1, MEDIUM, SLOW };
+
+    entt::entity target;
 
     SteeringManager(entt::registry* registry, entt::entity owner);
 
@@ -19,7 +21,8 @@ public:
     //Strategy pattern? i.e for each behavior its own class
     glm::vec2 seek(glm::vec2 target);
     glm::vec2 flee(glm::vec2 target);
-    glm::vec2 arrive(glm::vec2 target);
+    glm::vec2 arrive(glm::vec2 target, Deceleration deceleration);
+    glm::vec2 pursuit(entt::entity target);
 
 private:
     entt::registry* m_registry;

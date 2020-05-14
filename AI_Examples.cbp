@@ -43,10 +43,12 @@
 		<Unit filename="Common/Events/Events.h" />
 		<Unit filename="Common/GameData.h" />
 		<Unit filename="Common/GameManager.h" />
+		<Unit filename="Common/SteeringManager.h" />
 		<Unit filename="Common/Systems/System.h" />
 		<Unit filename="Common/SystemsManager.h" />
 		<Unit filename="Common/TextureManager.h" />
 		<Unit filename="Path.h" />
+		<Unit filename="SteeringManager.cpp" />
 		<Unit filename="Steerings/TestScene.h" />
 		<Unit filename="Systems/System.h" />
 		<Unit filename="main.cpp" />

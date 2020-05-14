@@ -5,8 +5,12 @@
 #include "entt.hpp"
 
 float vecToOrientation(glm::vec2 vector);
+
+glm::vec2 safeNormalize(glm::vec2 vector);
 glm::vec2 orientationToVec(float angle);
 glm::vec2 wrapVector(glm::vec2 vector, float maxLength);
+
+const float MINIMAL_SPEED = 0.01f;
 
 class SteeringManager {
 public:
@@ -22,7 +26,9 @@ public:
     glm::vec2 seek(glm::vec2 target);
     glm::vec2 flee(glm::vec2 target);
     glm::vec2 arrive(glm::vec2 target, Deceleration deceleration);
+
     glm::vec2 pursuit(entt::entity target);
+    glm::vec2 evade(entt::entity target);
 
 private:
     entt::registry* m_registry;

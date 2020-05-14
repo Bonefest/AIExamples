@@ -2,13 +2,15 @@
 
 #include "Components/Components.h"
 
+#include <iostream>
+
 SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): m_registry(registry),
                                                                    m_owner(owner) { }
 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
-    totalForce += pursuit(target);
+    totalForce += evade(target);
 
     return totalForce;
 }
@@ -58,20 +60,60 @@ glm::vec2 SteeringManager::pursuit(entt::entity target) {
     auto& physicsComponent = m_registry->get<Physics>(m_owner);
     auto& targetPhysicsComponent = m_registry->get<Physics>(target);
 
+    glm::vec2 direction = targetTransformComponent.position - transformComponent.position;
 
-    float distance = glm::distance(transformComponent.position, targetTransformComponent.position);
+    //Angle between target's and owner's heading vectors
+    float relativeHeading = glm::dot(orientationToVec(transformComponent.angle),
+                                     orientationToVec(targetTransformComponent.angle));
+
+    //Angle between owner's heading and direction vectors
+    float relativeMovingDirection = glm::dot(orientationToVec(transformComponent.angle),
+                                             safeNormalize(direction));
+
+    //If angle between target and owner heading vectors lower than 18 degs
+    //and owner heading towards direction
+    if(relativeHeading > 0.95f && relativeMovingDirection > 0.0f) {
+        return seek(targetTransformComponent.position);
+    }
+
+
+    float distance = glm::length(direction);
     float totalSpeed = glm::length(physicsComponent.velocity) + glm::length(targetPhysicsComponent.velocity);
     float predictTime = 0.0f;
 
-    if(totalSpeed > 0.01f) {
+    if(totalSpeed > MINIMAL_SPEED) {
         predictTime = distance / totalSpeed;
     }
 
     return seek(targetTransformComponent.position + targetPhysicsComponent.velocity * predictTime);
 }
 
+glm::vec2 SteeringManager::evade(entt::entity target) {
+    auto& transformComponent = m_registry->get<Transform>(m_owner);
+    auto& targetTransformComponent = m_registry->get<Transform>(target);
+
+    auto& physicsComponent = m_registry->get<Physics>(m_owner);
+    auto& targetPhysicsComponent = m_registry->get<Physics>(target);
+
+    float distance = glm::distance(transformComponent.position, targetTransformComponent.position);
+    float totalSpeed = glm::length(targetPhysicsComponent.velocity) + glm::length(physicsComponent.velocity);
+
+    float predictTime = 0.0f;
+    if(totalSpeed > MINIMAL_SPEED)
+        predictTime = distance / totalSpeed;
+
+    return flee(targetTransformComponent.position + targetPhysicsComponent.velocity * predictTime);
+}
+
 float vecToOrientation(glm::vec2 vector) {
     return glm::degrees(std::atan2(vector.y, vector.x));
+}
+
+glm::vec2 safeNormalize(glm::vec2 vector) {
+    if(glm::length(vector) > MINIMAL_SPEED)
+        return glm::normalize(vector);
+
+    return glm::vec2(0.0f, 0.0f);
 }
 
 glm::vec2 orientationToVec(float angle) {

@@ -51,17 +51,24 @@ struct Kinematic {
 };
 
 struct Physics {
-    Physics(float t_maxSpeed, float t_mass, float t_maxForce, float t_maxTurnRate): maxSpeed(t_maxSpeed),
-                                                                                     mass(t_mass),
-                                                                                     maxForce(t_maxForce),
-                                                                                     maxTurnRate(t_maxTurnRate),
-                                                                                     velocity(0.0f, 0.0f) { }
+    Physics(float t_maxSpeed, float t_mass, float t_maxForce, float t_maxTurnRate,float t_radius): maxSpeed(t_maxSpeed),
+                                                                                                   mass(t_mass),
+                                                                                                   maxForce(t_maxForce),
+                                                                                                   maxTurnRate(t_maxTurnRate),
+                                                                                                   radius(t_radius),
+                                                                                                   velocity(0.0f, 0.0f) { }
     float maxSpeed;
     float mass;
     float maxForce;
     float maxTurnRate;
 
+    float radius;
+
     glm::vec2 velocity;
+};
+
+struct Obstacle {
+
 };
 
 #include "../SteeringManager.h"

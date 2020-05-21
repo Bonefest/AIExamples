@@ -7,6 +7,8 @@
 #include "../GameData.h"
 #include "../../Path.h"
 
+#include "../helper.h"
+
 class ISystem {
 public:
     virtual void enter(entt::registry& registry, entt::dispatcher& dispatcher) { }
@@ -28,6 +30,24 @@ public:
                 SDL_RenderCopyEx(m_renderer, renderable.texture, NULL, &destRect, transform.angle, NULL, SDL_FLIP_NONE);
             }
         });
+    }
+
+private:
+    SDL_Renderer* m_renderer;
+};
+
+class ObstacleRenderingSystem: public ISystem {
+public:
+    ObstacleRenderingSystem(SDL_Renderer* renderer): m_renderer(renderer) { }
+
+    virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
+        auto obstaclesView = registry.view<Obstacle, Physics, Transform>();
+        for(auto obstacle: obstaclesView) {
+            Physics& physics = registry.get<Physics>(obstacle);
+            Transform& transform = registry.get<Transform>(obstacle);
+
+            drawCircle(m_renderer, transform.position, physics.radius, SDL_Color{0, 255, 0, 255}, 32);
+        }
     }
 
 private:

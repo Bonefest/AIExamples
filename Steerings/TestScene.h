@@ -51,6 +51,7 @@ public:
     void initSystems() {
         m_systemsManager.addSystem(make_shared<RenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<PathRenderingSystem>(m_prenderer));
+        m_systemsManager.addSystem(make_shared<ObstacleRenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<PhysicsSystem>());
         m_systemsManager.addSystem(make_shared<AISteeringSystem>());
     }
@@ -58,15 +59,23 @@ public:
     void initEntities() {
         entt::registry& registry = m_systemsManager.getRegistry();
 
+        // Obstacle generating
+        for(int i = 0;i < 5; ++i) {
+            entt::entity obstacle = registry.create();
+            registry.assign<Transform>(obstacle, glm::vec2(rand() % 640, rand() % 480), glm::vec2(0.0f, 0.0f), 1.0f, 0.0f);
+            registry.assign<Physics>(obstacle, 1.0f, 1.0f, 1.0f, 1.0f, 30.0f);
+            registry.assign<Obstacle>(obstacle);
+        }
+
         entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
-        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f);
+        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);
 
         auto smanager = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity);
         registry.assign<AI>(shipEntity, smanager);
 
 
         entt::entity playerEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0, 0));
-        registry.assign<Physics>(playerEntity, 300.0f, 1.0f, 600.0f, 100.0f);
+        registry.assign<Physics>(playerEntity, 300.0f, 1.0f, 600.0f, 100.0f, 20.0f);
         registry.assign<Controllable>(playerEntity);
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));

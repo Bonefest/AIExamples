@@ -23,10 +23,11 @@ public:
         renderableObjects.each([&](entt::entity object, Renderable& renderable, Transform& transform){
             if(renderable.texture != NULL) {
                 SDL_Rect destRect;
-                destRect.x = int(std::round(transform.position.x));
-                destRect.y = int(std::round(transform.position.y));
+                destRect.x = int(std::round(transform.position.x - transform.size.x * transform.scale * 0.5f));
+                destRect.y = int(std::round(transform.position.y - transform.size.y * transform.scale * 0.5f));
                 destRect.w = int(std::round(transform.size.x * transform.scale));
                 destRect.h = int(std::round(transform.size.y * transform.scale));
+
                 SDL_RenderCopyEx(m_renderer, renderable.texture, NULL, &destRect, transform.angle, NULL, SDL_FLIP_NONE);
             }
         });
@@ -45,8 +46,9 @@ public:
         for(auto obstacle: obstaclesView) {
             Physics& physics = registry.get<Physics>(obstacle);
             Transform& transform = registry.get<Transform>(obstacle);
+            Obstacle& obst = registry.get<Obstacle>(obstacle);
 
-            drawCircle(m_renderer, transform.position, physics.radius, SDL_Color{0, 255, 0, 255}, 32);
+            drawCircle(m_renderer, transform.position, physics.radius, obst.color, 32);
         }
     }
 
@@ -150,11 +152,9 @@ public:
         aiobjects.each([&](entt::entity object, Transform& transform, Physics& physics, AI& ai) {
             ai.manager->target = player;
 
-            glm::vec2 force = ai.manager->calculate();
+            glm::vec2 force = safeNormalize(ai.manager->calculate());
             //We temporary make result force maximal
-            if(glm::length(force) > 0.01f) {
-                force = glm::normalize(force);
-            }
+
             glm::vec2 acceleration = force * (1.0f / physics.mass) * physics.maxForce;
             physics.velocity = wrapVector(physics.velocity + acceleration * delta, physics.maxSpeed);
 

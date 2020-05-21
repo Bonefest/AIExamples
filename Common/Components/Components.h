@@ -68,7 +68,9 @@ struct Physics {
 };
 
 struct Obstacle {
+    Obstacle(SDL_Color t_color): color(t_color) { }
 
+    SDL_Color color;
 };
 
 #include "../SteeringManager.h"

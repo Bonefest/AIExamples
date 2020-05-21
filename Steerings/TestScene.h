@@ -60,12 +60,12 @@ public:
         entt::registry& registry = m_systemsManager.getRegistry();
 
         // Obstacle generating
-        for(int i = 0;i < 5; ++i) {
-            entt::entity obstacle = registry.create();
-            registry.assign<Transform>(obstacle, glm::vec2(rand() % 640, rand() % 480), glm::vec2(0.0f, 0.0f), 1.0f, 0.0f);
-            registry.assign<Physics>(obstacle, 1.0f, 1.0f, 1.0f, 1.0f, 30.0f);
-            registry.assign<Obstacle>(obstacle);
-        }
+//        for(int i = 0;i < 25; ++i) {
+//            entt::entity obstacle = registry.create();
+//            registry.assign<Transform>(obstacle, glm::vec2(rand() % 640, rand() % 480), glm::vec2(0.0f, 0.0f), 1.0f, 0.0f);
+//            registry.assign<Physics>(obstacle, 1.0f, 1.0f, 1.0f, 1.0f, 30.0f);
+//            registry.assign<Obstacle>(obstacle, SDL_Color{0, 255, 0, 255});
+//        }
 
         entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
         registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);
@@ -77,6 +77,7 @@ public:
         entt::entity playerEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0, 0));
         registry.assign<Physics>(playerEntity, 300.0f, 1.0f, 600.0f, 100.0f, 20.0f);
         registry.assign<Controllable>(playerEntity);
+        registry.assign<Obstacle>(playerEntity, SDL_Color{0, 255, 0, 255});
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));
     }
@@ -124,6 +125,14 @@ public:
     void onMouseEvent(const MouseEvent& event) {
         Transform& transform = m_systemsManager.getRegistry().get<Transform>(m_markEntity);
         transform.position = glm::vec2(event.event.x, event.event.y);
+
+        if(event.event.type == SDL_MOUSEBUTTONDOWN) {
+            auto& registry = m_systemsManager.getRegistry();
+            auto obstacle = registry.create();
+            registry.assign<Transform>(obstacle, transform.position, glm::vec2(0.0f, 0.0f), 1.0f, 0.0f);
+            registry.assign<Physics>(obstacle, 1.0f, 1.0f, 1.0f, 1.0f, drand48() * 15.0f + 15.0f);
+            registry.assign<Obstacle>(obstacle, SDL_Color{0, 255, 0, 255});
+        }
     }
 
     void input(SDL_Event event) {

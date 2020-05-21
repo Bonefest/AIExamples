@@ -32,6 +32,8 @@ public:
 
     glm::vec2 wander();
 
+    glm::vec2 obstacleAvoiding();
+
 private:
     entt::registry* m_registry;
     entt::entity m_owner;

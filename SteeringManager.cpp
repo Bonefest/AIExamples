@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "helper.h"
+
 SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): m_registry(registry),
                                                                                 m_owner(owner),
                                                                                 m_wanderLastOrientation(0.0f, 0.0f) { }
@@ -130,6 +132,28 @@ glm::vec2 SteeringManager::wander() {
                                safeNormalize(physicsComponent.velocity) * wanderOffset +
                                m_wanderLastOrientation;
     return seek(targetPosition);
+}
+
+glm::vec2 SteeringManager::obstacleAvoiding() {
+
+    Transform& transform = m_registry->get<Transform>(m_owner);
+    Physics& physics = m_registry->get<Physics>(m_owner);
+
+    glm::vec2 ownerHeading = orientationToVec(transform.angle);
+
+    entt::entity closestObstacle = entt::null;
+
+    auto obstaclesView = m_registry->view<Obstacle, Transform, Physics>();
+    for(auto obstacle: obstaclesView) {
+        Transform& obstacleTransform = m_registry->get<Transform>(obstacle);
+        Physics& obstaclePhysics = m_registry->get<Physics>(obstacle);
+
+        glm::vec2 obstacleOwnerSpace = convertToLocal(ownerHeading, transform.position, obstacleTransform.position);
+
+        if(obstacleOwnerSpace.x > 0) {  // Else obstacle is behind us and we don't care
+
+        }
+    }
 }
 
 float vecToOrientation(glm::vec2 vector) {

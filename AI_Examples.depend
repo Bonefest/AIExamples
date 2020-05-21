@@ -1804,7 +1804,7 @@
 1588862146 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Path.h
 	<vector>
 
-1589479549 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/SteeringManager.h
+1590069514 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/SteeringManager.h
 	<glm/glm.hpp>
 	"entt.hpp"
 
@@ -1813,12 +1813,12 @@
 	"Components/Components.h"
 	<iostream>
 
-1590067805 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/helper.h
+1590069640 /home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/helper.h
 	"SDL2/SDL.h"
 	<glm/glm.hpp>
 	"entt.hpp"
 
-1590069215 source:/home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/helper.cpp
+1590070598 source:/home/miofix/Programming/GameDevelopment/SDL/AI_Examples/Common/helper.cpp
 	"helper.h"
 	<iostream>
 

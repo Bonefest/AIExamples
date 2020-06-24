@@ -47,6 +47,8 @@
 		<Unit filename="Common/Systems/System.h" />
 		<Unit filename="Common/SystemsManager.h" />
 		<Unit filename="Common/TextureManager.h" />
+		<Unit filename="Common/helper.cpp" />
+		<Unit filename="Common/helper.h" />
 		<Unit filename="Path.h" />
 		<Unit filename="SteeringManager.cpp" />
 		<Unit filename="Steerings/TestScene.h" />

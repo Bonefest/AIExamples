@@ -54,6 +54,7 @@ public:
         m_systemsManager.addSystem(make_shared<ObstacleRenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<PhysicsSystem>());
         m_systemsManager.addSystem(make_shared<AISteeringSystem>());
+        m_systemsManager.addSystem(make_shared<ObstacleBoxRenderingSystem>(m_prenderer));
     }
 
     void initEntities() {

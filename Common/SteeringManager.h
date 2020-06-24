@@ -33,6 +33,7 @@ public:
     glm::vec2 wander();
 
     glm::vec2 obstacleAvoiding();
+    glm::vec2 obstacleAvoiding2();
 
 private:
     entt::registry* m_registry;

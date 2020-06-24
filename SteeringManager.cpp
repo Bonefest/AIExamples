@@ -13,9 +13,9 @@ SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
-    totalForce += obstacleAvoiding();
-    if(glm::length(totalForce) < 0.1f);
-        totalForce += wander();
+    totalForce += obstacleAvoiding2();
+    if(glm::length(totalForce) < 0.1f)
+        totalForce += wander() * 0.2f;
 
     return totalForce;
 }
@@ -136,75 +136,138 @@ glm::vec2 SteeringManager::wander() {
     return seek(targetPosition);
 }
 
-glm::vec2 SteeringManager::obstacleAvoiding() {
 
+glm::vec2 SteeringManager::obstacleAvoiding2() {
     Transform& transform = m_registry->get<Transform>(m_owner);
     Physics& physics = m_registry->get<Physics>(m_owner);
 
-    float ownerBoxLength = physics.radius * 5.0f + glm::length(physics.velocity) / physics.maxSpeed * physics.radius * 3.0f;
+    glm::vec2 head = safeNormalize(physics.velocity);
 
-    glm::vec2 ownerHeading = safeNormalize(physics.velocity);
-    if(glm::length(ownerHeading) < 0.01f) {
-        ownerHeading.x = 1.0f;
-        ownerHeading.y = 0.0f;
+    if(head.x * head.x + head.y * head.y < 0.01f) {
+        head = orientationToVec(transform.angle);
     }
+
+
+    float minBoxLength = 100.0f;
+    float boxLength = minBoxLength + physics.velocity.length() / physics.maxSpeed * minBoxLength;
+
 
     entt::entity closestObstacle = entt::null;
-    float closestX = ownerBoxLength * 2.0f;
+    float closestDistance = 0.0f;
 
-    auto obstaclesView = m_registry->view<Obstacle, Transform, Physics>();
-    for(auto obstacle: obstaclesView) {
-        Transform& obstacleTransform = m_registry->get<Transform>(obstacle);
-
-        if(glm::distance(transform.position, obstacleTransform.position) > ownerBoxLength) continue;
-
-        Physics& obstaclePhysics = m_registry->get<Physics>(obstacle);
-
-        glm::vec2 obstacleLocalPos = convertToLocal(ownerHeading, transform.position, glm::vec3(obstacleTransform.position, 1.0f));
-
-        if(obstacleLocalPos.x > 0) {  // Else obstacle is behind us and we don't care
-            if(std::fabs(obstacleLocalPos.y) > obstaclePhysics.radius + physics.radius * 0.5f) continue;
-
-            float ox = obstacleLocalPos.x, oy = obstacleLocalPos.y;
-            float r = obstaclePhysics.radius + physics.radius;
-
-            float x = ox + std::sqrt(r*r - oy*oy);
-            if(x < 0.0f) {
-                x = ox - std::sqrt(r*r - oy*oy); //The same as -(x - ox) + ox = 2r - ox
-            }
-
-            if(x < closestX) {
-                closestObstacle = obstacle;
-                closestX = x;
-            }
+    auto obstaclesView = m_registry->view<Transform, Physics, Obstacle>();
+    obstaclesView.each([&](entt::entity obstacle, Transform& obTransform, Physics& obPhysics, Obstacle& obs) {
+        glm::vec2 obstacleLocalPos = convertToLocal(head, transform.position, obTransform.position);
+        if(obstacleLocalPos.x < 0.0f || obstacleLocalPos.x - obPhysics.radius >= boxLength) {
+            return;
         }
-    }
 
-    glm::vec2 result(0.0f, 0.0f);
+        float r = obPhysics.radius + physics.radius;
+
+        if(r < std::fabs(obstacleLocalPos.y)) {
+            return;
+        }
+
+        float sq = std::sqrt(r*r - obstacleLocalPos.y * obstacleLocalPos.y);
+        float mn = obstacleLocalPos.x - sq;
+        if(mn <= 0.0) {
+            mn = obstacleLocalPos.x + sq;
+        }
+
+        if(closestObstacle == entt::null || mn < closestDistance) {
+            closestObstacle = obstacle;
+            closestDistance = mn;
+        }
+    });
+
+    std::cout << closestDistance << "\n";
 
     if(closestObstacle != entt::null) {
-
-        std::cout << "Found obstacle!\n";
-
-        float multiplier = 100.0f + (ownerBoxLength - closestX) / ownerBoxLength;
-
-        Transform& obstacleTransform = m_registry->get<Transform>(closestObstacle);
-        Physics& obstaclePhysics = m_registry->get<Physics>(closestObstacle);
+        Transform& obTransform = m_registry->get<Transform>(closestObstacle);
+        Physics& obPhysics = m_registry->get<Physics>(closestObstacle);
         Obstacle& obstacle = m_registry->get<Obstacle>(closestObstacle);
+        obstacle.color = SDL_Color {255, 0, 0 };
+        glm::vec2 obstacleLocalPos = convertToLocal(head, transform.position, obTransform.position);
 
-        obstacle.color = SDL_Color{255, 0, 0, 255};
+        float mult = (1.0f - closestDistance / boxLength) + 1.0f;
+        glm::vec2 lateral = glm::vec2(0, (obPhysics.radius - obstacleLocalPos.y) * mult * 10.0f);
+        glm::vec2 braking = glm::vec2((obPhysics.radius - obstacleLocalPos.x) * 10.0f, 0.0);
+
+        return convertToWorld(head, glm::vec2(0.0f, 0.0f), lateral + braking);
+    }
+
+    return glm::vec2(0.0, 0.0);
+}
+
+glm::vec2 SteeringManager::obstacleAvoiding() {
+
+//    Transform& transform = m_registry->get<Transform>(m_owner);
+//    Physics& physics = m_registry->get<Physics>(m_owner);
+//
+//    float ownerBoxLength = physics.radius * 5.0f + glm::length(physics.velocity) / physics.maxSpeed * physics.radius * 3.0f;
+//
+//    glm::vec2 ownerHeading = safeNormalize(physics.velocity);
+//    if(glm::length(ownerHeading) < 0.01f) {
+//        ownerHeading.x = 1.0f;
+//        ownerHeading.y = 0.0f;
+//    }
+//
+//    entt::entity closestObstacle = entt::null;
+//    float closestX = ownerBoxLength * 2.0f;
+//
+//    auto obstaclesView = m_registry->view<Obstacle, Transform, Physics>();
+//    for(auto obstacle: obstaclesView) {
+//        Transform& obstacleTransform = m_registry->get<Transform>(obstacle);
+//
+//        if(glm::distance(transform.position, obstacleTransform.position) > ownerBoxLength) continue;
+//
+//        Physics& obstaclePhysics = m_registry->get<Physics>(obstacle);
 //
 //        glm::vec2 obstacleLocalPos = convertToLocal(ownerHeading, transform.position, glm::vec3(obstacleTransform.position, 1.0f));
 //
-//        glm::vec2 lateralBrakingForce = glm::vec2(-0.2f * multiplier, -obstacleLocalPos.y * multiplier);
-
-//        result = convertToWorld(ownerHeading, transform.position, glm::vec3(lateralBrakingForce, 0.0f));
-
-          return glm::normalize(transform.position - obstacleTransform.position) * physics.maxSpeed;
-
-    }
-
-    return result;
+//        if(obstacleLocalPos.x > 0) {  // Else obstacle is behind us and we don't care
+//            if(std::fabs(obstacleLocalPos.y) > obstaclePhysics.radius + physics.radius * 0.5f) continue;
+//
+//            float ox = obstacleLocalPos.x, oy = obstacleLocalPos.y;
+//            float r = obstaclePhysics.radius + physics.radius;
+//
+//            float x = ox + std::sqrt(r*r - oy*oy);
+//            if(x < 0.0f) {
+//                x = ox - std::sqrt(r*r - oy*oy); //The same as -(x - ox) + ox = 2r - ox
+//            }
+//
+//            if(x < closestX) {
+//                closestObstacle = obstacle;
+//                closestX = x;
+//            }
+//        }
+//    }
+//
+//    glm::vec2 result(0.0f, 0.0f);
+//
+//    if(closestObstacle != entt::null) {
+//
+//        std::cout << "Found obstacle!\n";
+//
+//        float multiplier = 100.0f + (ownerBoxLength - closestX) / ownerBoxLength;
+//
+//        Transform& obstacleTransform = m_registry->get<Transform>(closestObstacle);
+//        Physics& obstaclePhysics = m_registry->get<Physics>(closestObstacle);
+//        Obstacle& obstacle = m_registry->get<Obstacle>(closestObstacle);
+//
+//        obstacle.color = SDL_Color{255, 0, 0, 255};
+////
+////        glm::vec2 obstacleLocalPos = convertToLocal(ownerHeading, transform.position, glm::vec3(obstacleTransform.position, 1.0f));
+////
+////        glm::vec2 lateralBrakingForce = glm::vec2(-0.2f * multiplier, -obstacleLocalPos.y * multiplier);
+//
+////        result = convertToWorld(ownerHeading, transform.position, glm::vec3(lateralBrakingForce, 0.0f));
+//
+//          return glm::normalize(transform.position - obstacleTransform.position) * physics.maxSpeed;
+//
+//    }
+//
+//    return result;
 }
 
 float vecToOrientation(glm::vec2 vector) {

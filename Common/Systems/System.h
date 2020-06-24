@@ -56,6 +56,26 @@ private:
     SDL_Renderer* m_renderer;
 };
 
+class ObstacleBoxRenderingSystem: public ISystem {
+public:
+    ObstacleBoxRenderingSystem(SDL_Renderer* renderer): m_renderer(renderer) { }
+
+    virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
+        auto aiView = registry.view<Transform, Physics, AI>();
+        aiView.each([&](entt::entity, Transform& transform, Physics& physics, AI& ai){
+            glm::vec2 points[2];
+            points[0] = transform.position;
+            points[1] = safeNormalize(physics.velocity) * (physics.velocity.length() / physics.maxSpeed * 100.0f + 100.0f) + transform.position;
+
+            SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
+            SDL_RenderDrawLine(m_renderer, int(points[0].x), int(points[0].y), int(points[1].x), int(points[1].y));
+        });
+    }
+
+private:
+    SDL_Renderer* m_renderer;
+};
+
 class PathRenderingSystem: public ISystem {
 public:
     PathRenderingSystem(SDL_Renderer* renderer): m_renderer(renderer) { }

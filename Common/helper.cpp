@@ -26,24 +26,28 @@ void drawCircle(SDL_Renderer* renderer, glm::vec2 position, float radius, SDL_Co
     SDL_SetRenderDrawColor(renderer, r, g, b, a);
 }
 
-glm::vec2 convertToLocal(glm::vec2 ownerHeadingVec, glm::vec2 ownerPos, glm::vec3 targetPos) {
-    glm::vec2 ownerPerp = glm::normalize(calculatePerp(ownerHeadingVec));
-    glm::mat3 converter = glm::mat3(1.0f);
-    converter[0] = glm::vec3(ownerHeadingVec, 0.0f);    //First column:  I
-    converter[1] = glm::vec3(ownerPerp, 0.0f);          //Second column: J
-    converter[2] = glm::vec3(ownerPos, 1.0f);          //Third column:  Translate
+glm::vec2 convertToLocal(glm::vec2 ownerHeadingVec, glm::vec2 ownerPos, glm::vec2 targetPos) {
+    glm::vec2 head = glm::normalize(ownerHeadingVec);
+    glm::vec2 perp = glm::normalize(calculatePerp(ownerHeadingVec));
+    glm::vec2 result = targetPos - ownerPos;
 
-    converter = glm::inverse(converter);
-    return glm::vec2(converter * targetPos);
+    // Unoptimized way!
+    glm::mat2x2 mat;
+    mat[0][0] = head.x; mat[0][1] = head.y;
+    mat[1][0] = perp.x; mat[1][1] = perp.y;
+
+    mat = glm::inverse(mat);
+
+    return mat * result;
 }
 
 
-glm::vec2 convertToWorld(glm::vec2 ownerHeadingVec, glm::vec2 ownerPos, glm::vec3 targetPos) {
-    glm::vec2 ownerPerp = glm::normalize(calculatePerp(ownerHeadingVec));
-    glm::mat3 converter = glm::mat3(1.0f);
-    converter[0] = glm::vec3(ownerHeadingVec, 0.0f);
-    converter[1] = glm::vec3(ownerPerp, 0.0f);
-    converter[2] = glm::vec3(ownerPos, 1.0f);
+glm::vec2 convertToWorld(glm::vec2 ownerHeadingVec, glm::vec2 ownerPos, glm::vec2 targetPos) {
+    glm::vec2 head = glm::normalize(ownerHeadingVec);
+    glm::vec2 side = glm::normalize(calculatePerp(ownerHeadingVec));
 
-    return glm::vec2(converter * targetPos);
+    // Affine transform
+    glm::vec2 result = head * targetPos.x + side * targetPos.y + ownerPos;
+
+    return result;
 }

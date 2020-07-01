@@ -127,4 +127,56 @@ private:
     float m_pathLength;
 };
 
+using Waypoints = std::vector<glm::vec2>;
+
+class WaypointsPath {
+public:
+    WaypointsPath(): m_threshold(0.0f), m_looped(false) { }
+    WaypointsPath(const Waypoints& waypoints, float threshold, bool looped): m_waypoints(waypoints),
+                                                                             m_currentWaypoint(0),
+                                                                             m_threshold(threshold),
+                                                                             m_looped(looped) { }
+
+    glm::vec2 getCurrentWaypoint() const {
+
+        return (m_waypoints.empty()) ? glm::vec2(0.0f, 0.0f) : m_waypoints[m_currentWaypoint];
+    }
+
+    glm::vec2 nextWaypoint() {
+        if(m_currentWaypoint < m_waypoints.size() - 1) {
+            m_currentWaypoint++;
+        } else if(m_looped) {
+            m_currentWaypoint = 0;
+        }
+
+        return m_waypoints[m_currentWaypoint];
+    }
+
+    bool isFinished() const {
+
+        return (m_waypoints.empty() || (m_currentWaypoint == m_waypoints.size() - 1 && !m_looped));
+    }
+
+    void setWaypoints(const Waypoints& waypoints) {
+        m_waypoints = waypoints;
+    }
+
+    void setThreshold(float threshold) {
+        m_threshold = threshold;
+    }
+
+    float getWaypointThreshold() const {
+        return m_threshold;
+    }
+
+
+
+private:
+    Waypoints       m_waypoints;
+    std::size_t     m_currentWaypoint;
+    float           m_threshold;
+    bool            m_looped;
+
+};
+
 #endif // PATH_H_INCLUDED

@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include "entt.hpp"
+#include "../Path.h"
 
 float vecToOrientation(glm::vec2 vector);
 
@@ -40,6 +41,10 @@ public:
     glm::vec2 interpose(entt::entity targetA, entt::entity targetB);
     glm::vec2 hide(entt::entity target);
 
+    glm::vec2 followPath();
+
+    void setPath(const WaypointsPath& path);
+
 private:
     glm::vec2 findHidingSpot(glm::vec2 obstaclePosition,
                              float obstacleRadius,
@@ -48,7 +53,8 @@ private:
     entt::registry* m_registry;
     entt::entity m_owner;
 
-    glm::vec2 m_wanderLastOrientation;
+    glm::vec2       m_wanderLastOrientation;
+    WaypointsPath   m_path;
 };
 
 

@@ -99,12 +99,27 @@ public:
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));
 
+        Waypoints waypoints = {
+            glm::vec2(50.0f, 50.0f),
+            glm::vec2(100.0f, 50.0f),
+            glm::vec2(150.0f, 50.0f),
+            glm::vec2(200.0f, 50.0f),
+            glm::vec2(250.0f, 100.0f),
+            glm::vec2(250.0f, 200.0f),
+            glm::vec2(350.0f, 300.0f),
+            glm::vec2(350.0f, 350.0f),
+            glm::vec2(300.0f, 350.0f),
+            glm::vec2(50.0f, 350.0f)
+        };
+
         entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
         registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);
 
         auto smanager = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity);
         smanager->target = playerEntity;
+        smanager->setPath(WaypointsPath(waypoints, 25.0f, true));
         registry.assign<AI>(shipEntity, smanager);
+
 
         entt::entity shipEntity2 = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0.0f, 0.0f));
         registry.assign<Physics>(shipEntity2, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);

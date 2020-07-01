@@ -14,7 +14,7 @@ SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
-    totalForce += hide(target);
+    totalForce += followPath();
 //    totalForce += wallAvoidance();
 //    totalForce += obstacleAvoiding2();
 //    if(glm::length(totalForce) < 0.1f)
@@ -379,6 +379,24 @@ glm::vec2 SteeringManager::hide(entt::entity target) {
     }
 
     return arrive(closestPoint, FAST);
+}
+
+glm::vec2 SteeringManager::followPath() {
+    glm::vec2 currentWaypoint = m_path.getCurrentWaypoint();
+    if(m_path.isFinished()) {
+        return arrive(currentWaypoint, FAST);
+    }
+
+    Transform& playerTransform = m_registry->get<Transform>(m_owner);
+    if(glm::distance(playerTransform.position, currentWaypoint) < m_path.getWaypointThreshold()) {
+        currentWaypoint = m_path.nextWaypoint();
+    }
+
+    return seek(currentWaypoint);
+}
+
+void SteeringManager::setPath(const WaypointsPath& path) {
+    m_path = path;
 }
 
 glm::vec2 SteeringManager::findHidingSpot(glm::vec2 obstaclePosition,

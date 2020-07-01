@@ -35,6 +35,8 @@ public:
     glm::vec2 obstacleAvoiding();
     glm::vec2 obstacleAvoiding2();
 
+    glm::vec2 wallAvoidance();
+
 private:
     entt::registry* m_registry;
     entt::entity m_owner;

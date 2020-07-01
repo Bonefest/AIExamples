@@ -73,6 +73,24 @@ struct Obstacle {
     SDL_Color color;
 };
 
+
+#include "Common.h"
+#include "helper.h"
+
+struct Wall {
+
+    Wall(Line2D l_line, SDL_Color l_color): line(l_line), color(l_color) {
+        normal = glm::normalize(calculatePerp(l_line.end - l_line.start));
+    }
+
+    Line2D      line;
+    SDL_Color   color;
+
+
+    glm::vec2   normal;
+};
+
+
 #include "../SteeringManager.h"
 
 struct AI {

@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "helper.h"
+#include <cmath>
 
 SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): m_registry(registry),
                                                                                 m_owner(owner),
@@ -13,6 +14,7 @@ SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
+    totalForce += wallAvoidance();
     totalForce += obstacleAvoiding2();
     if(glm::length(totalForce) < 0.1f)
         totalForce += wander() * 0.2f;
@@ -268,6 +270,63 @@ glm::vec2 SteeringManager::obstacleAvoiding() {
 //    }
 //
 //    return result;
+}
+
+glm::vec2 SteeringManager::wallAvoidance() {
+    Transform& transform = m_registry->get<Transform>(m_owner);
+    Physics& physics = m_registry->get<Physics>(m_owner);
+
+    glm::vec2 head = safeNormalize(physics.velocity);
+
+    if(head.x * head.x + head.y * head.y < 0.01f) {
+        head = orientationToVec(transform.angle);
+    }
+
+    const static float lineLength = 80.0f;
+
+    std::vector<Line2D> lines;
+    for(int i = 0; i < 6; ++i) {
+        Line2D line;
+        line.start = glm::vec2(0.0f, 0.0f) + transform.position;
+        line.end = lineLength * glm::vec2(std::cos(-M_PI * 0.375f + M_PI * 0.125f * i),
+                                          std::sin(-M_PI * 0.375f + M_PI * 0.125f * i));
+        line.end = convertToWorld(head, transform.position, line.end);
+
+        lines.push_back(line);
+    }
+
+    float closestDistance = 32000.0f;
+    float penetrationDepth = 0.0f;
+    glm::vec2 wallNormal = glm::vec2(0.0f, 0.0f);
+
+    auto wallsView = m_registry->view<Wall>();
+    for(auto line : lines) {
+        wallsView.each([&](entt::entity entity, Wall& wall){
+            IntersectionResult result;
+            if(testLineIntersection2D(wall.line, line, result)) {
+                //std::cout << result.t1 << " " << result.t2 << "\n";
+                if(result.t1 >= 0.0f && result.t1 <= 1.0f &&
+                   result.t2 >= 0.0f && result.t2 <= 1.0f) {
+
+                    float distance = glm::distance(transform.position, result.point);
+                    if(distance < closestDistance) {
+                        penetrationDepth = lineLength - distance;
+                        wallNormal = wall.normal;
+                        closestDistance = distance;
+                    }
+
+                }
+            }
+
+
+        });
+    }
+
+    if(closestDistance < lineLength) {
+        return 2.5f * wallNormal * (penetrationDepth * penetrationDepth * penetrationDepth);
+    }
+
+    return glm::vec2(0.0f, 0.0f);
 }
 
 float vecToOrientation(glm::vec2 vector) {

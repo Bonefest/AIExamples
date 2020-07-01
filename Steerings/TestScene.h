@@ -31,6 +31,7 @@ public:
         initContext();
         initSystems();
         initEntities();
+        initWalls();
 
         m_systemsManager.getDispatcher().sink<MouseEvent>().connect<&TestScene::onMouseEvent>(*this);
 
@@ -52,9 +53,31 @@ public:
         m_systemsManager.addSystem(make_shared<RenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<PathRenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<ObstacleRenderingSystem>(m_prenderer));
+        m_systemsManager.addSystem(make_shared<WallRenderingSystem>(m_prenderer));
+        m_systemsManager.addSystem(make_shared<ObstacleBoxRenderingSystem>(m_prenderer));
         m_systemsManager.addSystem(make_shared<PhysicsSystem>());
         m_systemsManager.addSystem(make_shared<AISteeringSystem>());
-        m_systemsManager.addSystem(make_shared<ObstacleBoxRenderingSystem>(m_prenderer));
+    }
+
+    void initWalls() {
+        entt::registry& registry = m_systemsManager.getRegistry();
+
+        entt::entity wall;
+
+        wall = registry.create();
+        registry.assign<Wall>(wall, Line2D{glm::vec2(0.0f, 40.0f), glm::vec2(640, 0.0f)}, SDL_Color{0, 255, 0, 255});
+
+        wall = registry.create();
+        registry.assign<Wall>(wall, Line2D{glm::vec2(0.0f, 420.0f), glm::vec2(0.0f, 40.0f)}, SDL_Color{0, 255, 0, 255});
+
+
+        wall = registry.create();
+        registry.assign<Wall>(wall, Line2D{glm::vec2(640.0f, 0.0f), glm::vec2(640.0f, 480.0f)}, SDL_Color{0, 255, 0, 255});
+
+
+        wall = registry.create();
+        registry.assign<Wall>(wall, Line2D{glm::vec2(640.0f, 480.0f), glm::vec2(0.0f, 480.0f)}, SDL_Color{0, 255, 0, 255});
+
     }
 
     void initEntities() {

@@ -51,3 +51,27 @@ glm::vec2 convertToWorld(glm::vec2 ownerHeadingVec, glm::vec2 ownerPos, glm::vec
 
     return result;
 }
+
+bool testLineIntersection2D(Line2D lineA, Line2D lineB, IntersectionResult& result) {
+    glm::vec2 d1 = lineA.end - lineA.start;
+    glm::vec2 d2 = lineB.end - lineB.start;
+    glm::vec2 r  = lineA.start - lineB.start;
+
+    float a = glm::dot(d1, d1);
+    float b = glm::dot(d1, d2);
+    float e = glm::dot(d2, d2);
+
+    float d = a * e - b * b;
+    if(abs(d) < 0.001) {
+        return false;
+    }
+
+    float c = glm::dot(d1, r);
+    float f = glm::dot(d2, r);
+
+    result.t1 = (b*f - c*e) / d;
+    result.t2 = (a*f - b*c) / d;
+    result.point = lineA.start + d1 * result.t1;
+
+    return true;
+}

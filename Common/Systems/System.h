@@ -112,6 +112,39 @@ private:
     SDL_Renderer* m_renderer;
 };
 
+class WallRenderingSystem: public ISystem {
+public:
+    WallRenderingSystem(SDL_Renderer* renderer): m_renderer(renderer) { }
+
+    virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {
+        auto wallsView = registry.view<Wall>();
+        wallsView.each([&](entt::entity entity, Wall& wall){
+
+            Uint8 r, g, b, a;
+            SDL_GetRenderDrawColor(m_renderer, &r, &g, &b, &a);
+            SDL_SetRenderDrawColor(m_renderer, wall.color.r, wall.color.g, wall.color.b, 255);
+            SDL_RenderDrawLine(m_renderer, std::round(wall.line.start.x), std::round(wall.line.start.y), std::round(wall.line.end.x), std::round(wall.line.end.y));
+
+
+            glm::vec2 center = (wall.line.start + wall.line.end) * 0.5f;
+            glm::vec2 normalEnd = center + wall.normal * 30.0f;
+
+
+            SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+            SDL_RenderDrawLine(m_renderer, std::round(center.x), std::round(center.y), std::round(normalEnd.x), std::round(normalEnd.y));
+
+
+            SDL_SetRenderDrawColor(m_renderer, r, g, b, a);
+
+
+        });
+    }
+
+private:
+    SDL_Renderer*   m_renderer;
+
+};
+
 class PhysicsSystem: public ISystem {
 public:
     virtual void update(entt::registry& registry, entt::dispatcher& dispatcher, float delta) {

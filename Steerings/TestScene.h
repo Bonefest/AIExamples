@@ -91,12 +91,6 @@ public:
 //            registry.assign<Obstacle>(obstacle, SDL_Color{0, 255, 0, 255});
 //        }
 
-        entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
-        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);
-
-        auto smanager = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity);
-        registry.assign<AI>(shipEntity, smanager);
-
 
         entt::entity playerEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0, 0));
         registry.assign<Physics>(playerEntity, 300.0f, 1.0f, 600.0f, 100.0f, 20.0f);
@@ -104,6 +98,20 @@ public:
         registry.assign<Obstacle>(playerEntity, SDL_Color{0, 255, 0, 255});
 
         m_markEntity = createDrawableEntity(registry, "Resources/Mark.png", glm::vec2(200, 200));
+
+        entt::entity shipEntity = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(240.0f, 180.0f));
+        registry.assign<Physics>(shipEntity, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);
+
+        auto smanager = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity);
+        smanager->target = playerEntity;
+        registry.assign<AI>(shipEntity, smanager);
+
+        entt::entity shipEntity2 = createDrawableEntity(registry, "Resources/Pointer.png", glm::vec2(0.0f, 0.0f));
+        registry.assign<Physics>(shipEntity2, 150.0f, 1.0f, 200.0f, 100.0f, 20.0f);
+
+        auto smanager2 = make_shared<SteeringManager>(&m_systemsManager.getRegistry(), shipEntity2);
+        smanager2->target = shipEntity;
+        registry.assign<AI>(shipEntity2, smanager2);
     }
 
     virtual void update(float delta) {

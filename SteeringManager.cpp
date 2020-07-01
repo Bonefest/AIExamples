@@ -14,10 +14,11 @@ SteeringManager::SteeringManager(entt::registry* registry, entt::entity owner): 
 glm::vec2 SteeringManager::calculate() {
     //if seek_on / if arrive_on / if evade_on ...
     glm::vec2 totalForce = glm::vec2(0.0f, 0.0f);
-    totalForce += wallAvoidance();
-    totalForce += obstacleAvoiding2();
-    if(glm::length(totalForce) < 0.1f)
-        totalForce += wander() * 0.2f;
+    totalForce += hide(target);
+//    totalForce += wallAvoidance();
+//    totalForce += obstacleAvoiding2();
+//    if(glm::length(totalForce) < 0.1f)
+//        totalForce += wander() * 0.2f;
 
     return totalForce;
 }
@@ -327,6 +328,67 @@ glm::vec2 SteeringManager::wallAvoidance() {
     }
 
     return glm::vec2(0.0f, 0.0f);
+}
+
+glm::vec2 SteeringManager::interpose(entt::entity targetA, entt::entity targetB) {
+    Transform& playerTransform = m_registry->get<Transform>(m_owner);
+    Physics& playerPhysics = m_registry->get<Physics>(m_owner);
+
+    Transform& targetATransform = m_registry->get<Transform>(targetA);
+    Physics& targetAPhysics = m_registry->get<Physics>(targetA);
+
+    Transform& targetBTransform = m_registry->get<Transform>(targetB);
+    Physics& targetBPhysics = m_registry->get<Physics>(targetB);
+
+    glm::vec2 targetMidPoint = (targetATransform.position + targetBTransform.position) * 0.5f;
+    float t = glm::distance(playerTransform.position, targetMidPoint) / playerPhysics.maxSpeed;
+
+    glm::vec2 arrivePosition = ((targetATransform.position + targetAPhysics.velocity * t) +
+                                (targetBTransform.position + targetBPhysics.velocity * t)) * 0.5f;
+
+    return arrive(arrivePosition, FAST);
+}
+
+
+glm::vec2 SteeringManager::hide(entt::entity target) {
+
+    Transform& playerTransform = m_registry->get<Transform>(m_owner);
+    Transform& targetTransform = m_registry->get<Transform>(target);
+
+    auto obstaclesView = m_registry->view<Obstacle, Transform, Physics>();
+
+    float closestDistance = 32000.0f;
+    glm::vec2 closestPoint = glm::vec2(0.0f, 0.0f);
+
+    obstaclesView.each([&](entt::entity entity, Obstacle& obstacle, Transform& transform, Physics& physics){
+        if(entity == m_owner || entity == target) {
+            return;
+        }
+
+        glm::vec2 hidingSpot = findHidingSpot(transform.position, physics.radius, targetTransform.position);
+        float distance = glm::distance(hidingSpot, playerTransform.position);
+        if(distance < closestDistance) {
+            closestDistance = distance;
+            closestPoint = hidingSpot;
+        }
+
+    });
+
+    if(closestDistance > 1000.0f) {
+        return evade(target);
+    }
+
+    return arrive(closestPoint, FAST);
+}
+
+glm::vec2 SteeringManager::findHidingSpot(glm::vec2 obstaclePosition,
+                                          float obstacleRadius,
+                                          glm::vec2 targetPosition) {
+    const static float distanceFromObstacle = 30.0f;
+
+    glm::vec2 direction = glm::normalize(obstaclePosition - targetPosition);
+
+    return obstaclePosition + direction * (distanceFromObstacle + obstacleRadius);
 }
 
 float vecToOrientation(glm::vec2 vector) {

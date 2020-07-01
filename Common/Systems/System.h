@@ -203,7 +203,7 @@ public:
 
         auto aiobjects = registry.view<Transform, Physics, AI>();
         aiobjects.each([&](entt::entity object, Transform& transform, Physics& physics, AI& ai) {
-            ai.manager->target = player;
+            //ai.manager->target = player;
 
             glm::vec2 force = safeNormalize(ai.manager->calculate());
             //We temporary make result force maximal

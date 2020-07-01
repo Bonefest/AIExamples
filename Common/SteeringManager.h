@@ -37,7 +37,14 @@ public:
 
     glm::vec2 wallAvoidance();
 
+    glm::vec2 interpose(entt::entity targetA, entt::entity targetB);
+    glm::vec2 hide(entt::entity target);
+
 private:
+    glm::vec2 findHidingSpot(glm::vec2 obstaclePosition,
+                             float obstacleRadius,
+                             glm::vec2 targetPosition);
+
     entt::registry* m_registry;
     entt::entity m_owner;
 

@@ -43,6 +43,8 @@ public:
 
     glm::vec2 followPath();
 
+    glm::vec2 offsetPursuit(entt::entity target, glm::vec2 offset);
+
     void setPath(const WaypointsPath& path);
 
 private:
